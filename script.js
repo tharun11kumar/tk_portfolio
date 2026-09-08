@@ -20,7 +20,26 @@ function el(tag, className, html){
 }
 
 /* ---------- GATE ---------- */
+function renderGateName(){
+  const h1 = document.getElementById("gate-name");
+  h1.innerHTML = "";
+  const words = CONTENT.name.split(" ");
+  let i = 0;
+  words.forEach((word, wi) => {
+    const wordSpan = el("span", "word");
+    [...word].forEach(ch => {
+      const letter = el("span", "letter", ch);
+      letter.style.setProperty("--ld", `${0.25 + i * 0.045}s`);
+      wordSpan.appendChild(letter);
+      i++;
+    });
+    h1.appendChild(wordSpan);
+    if(wi < words.length - 1) h1.appendChild(document.createTextNode(" "));
+  });
+}
+
 function renderGate(){
+  renderGateName();
   const wrap = document.getElementById("reel-select");
   wrap.innerHTML = "";
   CONTENT.categories.forEach(cat => {
@@ -65,6 +84,8 @@ function swapGrid(){
 }
 
 /* ---------- WORK GRID ---------- */
+let gridFirstRenderDone = false;
+
 function getYouTubeId(url){
   if(!url) return null;
   const match = url.match(/(?:embed\/|v=|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
@@ -104,8 +125,12 @@ function renderGrid(){
     grid.appendChild(el("p", null, "No projects in this category yet — add one in content.js."));
     return;
   }
-  items.forEach(item => {
+  items.forEach((item, i) => {
     const card = el("div", "card");
+    if(!gridFirstRenderDone){
+      card.classList.add("reveal");
+      card.style.setProperty("--d", `${i * 0.08}s`);
+    }
     const accent = ACCENT_BY_CATEGORY[item.category] || "var(--accent)";
     card.innerHTML = `
       <div class="card-thumb" style="background:linear-gradient(150deg, ${accent}, #08090b 78%)">
@@ -203,8 +228,9 @@ function closeModal(){
 function renderHistory(){
   const wrap = document.getElementById("timeline");
   wrap.innerHTML = "";
-  CONTENT.history.forEach(h => {
-    const item = el("div", "tl-item");
+  CONTENT.history.forEach((h, i) => {
+    const item = el("div", "tl-item reveal");
+    item.style.setProperty("--d", `${i * 0.12}s`);
     item.innerHTML = `
       <span class="tl-time">${h.time}</span>
       <p class="tl-title">${h.title}</p>
@@ -259,6 +285,25 @@ function startTimecode(){
   }, 1000/24);
 }
 
+/* ---------- SCROLL REVEAL ---------- */
+function initScrollReveal(){
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const targets = document.querySelectorAll(".reveal:not(.in-view)");
+  if(reduced){
+    targets.forEach(t => t.classList.add("in-view"));
+    return;
+  }
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        entry.target.classList.add("in-view");
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: "0px 0px -8% 0px" });
+  targets.forEach(t => io.observe(t));
+}
+
 /* ---------- LOADER (the one deliberate page-load sequence) ---------- */
 function runLoader(){
   const loader = document.getElementById("loader");
@@ -287,6 +332,8 @@ document.addEventListener("DOMContentLoaded", () => {
   renderContact();
   startTimecode();
   runLoader();
+  initScrollReveal();
+  gridFirstRenderDone = true;
 
   document.getElementById("modal-close").addEventListener("click", closeModal);
   document.getElementById("modal").addEventListener("click", (e) => {

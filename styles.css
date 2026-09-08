@@ -78,15 +78,48 @@ html.is-loading{ overflow:hidden; }
   transition:opacity 0.7s var(--ease), transform 0.7s var(--ease);
 }
 .intro-play .gate-eyebrow{ transition-delay:0.05s; }
-.intro-play .gate-title{   transition-delay:0.15s; }
-.intro-play .reel-select{  transition-delay:0.28s; }
-.intro-play .gate-hint{    transition-delay:0.5s; }
+.intro-play .gate-title{   transition-delay:0.75s; }
+.intro-play .reel-select{  transition-delay:0.9s; }
+.intro-play .gate-hint{    transition-delay:1.15s; }
 .intro-play .gate-eyebrow,
 .intro-play .gate-title,
 .intro-play .reel-select,
 .intro-play .gate-hint{ opacity:1; transform:translateY(0); }
 @media (prefers-reduced-motion: reduce){
   .gate-eyebrow, .gate-title, .reel-select, .gate-hint{ opacity:1; transform:none; transition:none; }
+}
+
+/* ============================================================
+   SCROLL REVEAL — sections/cards animate in the first time they
+   enter the viewport, instead of all being visible on load.
+   ============================================================ */
+.reveal{
+  opacity:0; translate:0 32px;
+  transition:opacity 0.8s var(--ease), translate 0.8s var(--ease);
+  transition-delay:var(--d, 0s);
+}
+.reveal.in-view{ opacity:1; translate:0 0; }
+@media (prefers-reduced-motion: reduce){
+  .reveal{ opacity:1; translate:0 0; transition:none; }
+}
+
+/* ============================================================
+   GATE NAME — "Tharun Kumar" pops in letter by letter after the loader clears
+   ============================================================ */
+.gate-name{
+  font-size:clamp(3rem, 12vw, 7rem);
+  line-height:0.92; margin:0.4rem 0 1.6rem; white-space:normal;
+}
+.gate-name .word{ display:inline-block; white-space:nowrap; }
+.gate-name .letter{
+  display:inline-block;
+  opacity:0; transform:translateY(0.4em) scale(0.6);
+  transition:opacity 0.55s var(--ease), transform 0.55s var(--ease);
+  transition-delay:var(--ld, 0s);
+}
+.intro-play .gate-name .letter{ opacity:1; transform:translateY(0) scale(1); }
+@media (prefers-reduced-motion: reduce){
+  .gate-name .letter{ opacity:1; transform:none; transition:none; }
 }
 
 *{ box-sizing:border-box; }

@@ -37,8 +37,9 @@
 <section id="gate" class="gate">
   <div class="letterbox top"></div>
   <div class="gate-inner">
-    <p class="gate-eyebrow">Tharun Kumar — Showreel Select</p>
-    <h1 class="gate-title">What brings<br>you here?</h1>
+    <p class="gate-eyebrow">Editor · Photographer · Filmmaker</p>
+    <h1 class="gate-name" id="gate-name" aria-label="Tharun Kumar"><!-- populated by script.js, split into pop-in letters --></h1>
+    <p class="gate-title">What brings you here?</p>
     <div class="reel-select" id="reel-select">
       <!-- populated by script.js from content.categories -->
     </div>
@@ -49,7 +50,7 @@
 
 <!-- ============ WORK ============ -->
 <section id="work" class="work">
-  <div class="section-head">
+  <div class="section-head reveal">
     <h2>Selected Work</h2>
     <div class="tabs" id="tabs"><!-- populated by script.js --></div>
   </div>
@@ -58,7 +59,7 @@
 
 <!-- ============ WORK HISTORY ============ -->
 <section id="history" class="history">
-  <div class="section-head">
+  <div class="section-head reveal">
     <h2>Work History</h2>
     <p class="section-sub">A timeline, not a résumé.</p>
   </div>
@@ -67,12 +68,12 @@
 
 <!-- ============ ABOUT ============ -->
 <section id="about" class="about">
-  <div class="about-portrait">
+  <div class="about-portrait reveal">
     <div class="portrait-frame" id="portrait"><span>PORTRAIT</span></div>
     <div class="sprocket left"></div>
     <div class="sprocket right"></div>
   </div>
-  <div class="about-copy">
+  <div class="about-copy reveal" style="--d:0.15s">
     <h2>About</h2>
     <div id="about-text" class="about-text"><!-- populated by script.js --></div>
     <div class="kit">
@@ -84,9 +85,9 @@
 
 <!-- ============ CONTACT ============ -->
 <footer id="contact" class="contact">
-  <h2>Let's make something.</h2>
-  <a class="contact-email" id="contact-email" href="#"></a>
-  <div class="socials" id="socials"><!-- populated by script.js --></div>
+  <h2 class="reveal">Let's make something.</h2>
+  <a class="contact-email reveal" id="contact-email" href="#" style="--d:0.1s"></a>
+  <div class="socials reveal" id="socials" style="--d:0.2s"><!-- populated by script.js --></div>
   <p class="fine-print">© <span id="year"></span> Tharun Kumar. Built frame by frame.</p>
 </footer>
 
