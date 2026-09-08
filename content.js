@@ -22,7 +22,7 @@ const CONTENT = {
       role: "Tool + Edit",
       description: "A Premiere Pro extension I built that reads a track's beat map and auto-cuts the timeline to the drop — built this to speed up recap and montage edits for Film Society.",
       image: null,
-      video: "https://drive.google.com/file/d/1z8mLwFnMt0f1Z5dY0HT2vqWK2JUexljw/view?usp=drive_link",
+      video: "https://drive.google.com/file/d/1z8mLwFnMt0f1Z5dY0HT2vqWK2JUexljw/preview",
       link: null,
     },
     {
