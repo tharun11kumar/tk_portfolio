@@ -29,7 +29,7 @@ function renderGate(){
     btn.addEventListener("click", () => {
       activeCategory = cat.id;
       renderTabs();
-      renderGrid();
+      swapGrid();
       document.getElementById("work").scrollIntoView({ behavior: "smooth" });
     });
     wrap.appendChild(btn);
@@ -43,12 +43,25 @@ function renderTabs(){
   CONTENT.categories.forEach(cat => {
     const btn = el("button", "tab" + (cat.id === activeCategory ? " active" : ""), cat.label);
     btn.addEventListener("click", () => {
+      if(cat.id === activeCategory) return;
       activeCategory = cat.id;
       renderTabs();
-      renderGrid();
+      swapGrid();
     });
     wrap.appendChild(btn);
   });
+}
+
+/* crossfades the grid out, swaps content, fades it back in — motion tied to the click */
+function swapGrid(){
+  const grid = document.getElementById("work-grid");
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduced){ renderGrid(); return; }
+  grid.classList.add("swapping");
+  setTimeout(() => {
+    renderGrid();
+    grid.classList.remove("swapping");
+  }, 220);
 }
 
 /* ---------- WORK GRID ---------- */
@@ -246,8 +259,25 @@ function startTimecode(){
   }, 1000/24);
 }
 
+/* ---------- LOADER (the one deliberate page-load sequence) ---------- */
+function runLoader(){
+  const loader = document.getElementById("loader");
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const holdTime = reduced ? 150 : 1250; // let the clap animation actually finish before hiding
+
+  setTimeout(() => {
+    loader.classList.add("hide");
+    document.getElementById("gate").classList.add("intro-play");
+    setTimeout(() => {
+      loader.remove();
+      document.documentElement.classList.remove("is-loading");
+    }, reduced ? 200 : 650);
+  }, holdTime);
+}
+
 /* ---------- INIT ---------- */
 document.addEventListener("DOMContentLoaded", () => {
+  document.documentElement.classList.add("is-loading");
   renderHeader();
   renderGate();
   renderTabs();
@@ -256,6 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderAbout();
   renderContact();
   startTimecode();
+  runLoader();
 
   document.getElementById("modal-close").addEventListener("click", closeModal);
   document.getElementById("modal").addEventListener("click", (e) => {
