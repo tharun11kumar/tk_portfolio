@@ -1,26 +1,3 @@
-/* ============================================================
-   CONTENT.JS
-   This is the ONLY file you need to edit to update your website.
-   Change the text, links, and image paths below, save the file,
-   commit + push to GitHub, and Vercel redeploys automatically.
-
-   Do not touch index.html or styles.css unless you want to change
-   the actual layout/design — everything here is just your content.
-
-   EDITS & FILMS (one item per project):
-   - "video": a YouTube/Vimeo EMBED url, e.g. https://www.youtube.com/embed/VIDEO_ID
-   - "image": a single cover image path, e.g. "assets/edits/recap-cover.jpg"
-   - Leave both null to keep the generated placeholder.
-
-   PHOTOGRAPHY (one item per ALBUM, not per photo):
-   - Use "images": [ "assets/photos/goa-trip/1.jpg", "assets/photos/goa-trip/2.jpg", ... ]
-   - List every photo in that shoot/album inside the array. The grid
-     will show the first photo as the cover with a photo count badge,
-     and clicking it opens the whole album as a gallery visitors can
-     click or arrow-key through.
-   - Do NOT use "image" (singular) for photography — use "images" (plural).
-   ============================================================ */
-
 const CONTENT = {
 
   name: "Tharun Kumar",
@@ -45,7 +22,7 @@ const CONTENT = {
       role: "Tool + Edit",
       description: "A Premiere Pro extension I built that reads a track's beat map and auto-cuts the timeline to the drop — built this to speed up recap and montage edits for Film Society.",
       image: null,
-      video: null,
+      video: "https://drive.google.com/file/d/1z8mLwFnMt0f1Z5dY0HT2vqWK2JUexljw/view?usp=drive_link",
       link: null,
     },
     {
