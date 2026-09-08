@@ -52,6 +52,12 @@ function renderTabs(){
 }
 
 /* ---------- WORK GRID ---------- */
+function getYouTubeId(url){
+  if(!url) return null;
+  const match = url.match(/(?:embed\/|v=|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
+  return match ? match[1] : null;
+}
+
 function thumbHTML(item){
   // photo album: cover is the first image, with a photo-count badge
   if(item.images && item.images.length){
@@ -60,12 +66,21 @@ function thumbHTML(item){
       : `<div class="ph"></div>`;
     return `${cover}<span class="count-badge">${item.images.length} photo${item.images.length===1?"":"s"}</span>`;
   }
-  // single edit/film: one image or a placeholder + play icon if it's a video
+  // explicit custom thumbnail always wins
   if(item.image){
-    return `<img src="${item.image}" alt="${item.title}">`;
+    const play = item.video ? `<div class="play"></div>` : "";
+    return `<img src="${item.image}" alt="${item.title}">${play}`;
   }
-  const showPlay = !!item.video;
-  return `<div class="ph"></div>${showPlay ? '<div class="play"></div>' : ""}`;
+  // no explicit image, but it's a YouTube video: pull the real thumbnail automatically
+  if(item.video){
+    const ytId = getYouTubeId(item.video);
+    if(ytId){
+      return `<img src="https://img.youtube.com/vi/${ytId}/hqdefault.jpg" alt="${item.title}"><div class="play"></div>`;
+    }
+    // non-YouTube video with no "image" set: fall back to a grain placeholder
+    return `<div class="ph"></div><div class="play"></div>`;
+  }
+  return `<div class="ph"></div>`;
 }
 
 function renderGrid(){
@@ -165,6 +180,10 @@ function closeModal(){
   const modal = document.getElementById("modal");
   modal.classList.remove("open");
   modal.setAttribute("aria-hidden", "true");
+  // an iframe keeps playing (audio included) even when just hidden with CSS —
+  // clearing it out is what actually stops playback
+  document.getElementById("modal-thumb").innerHTML = "";
+  document.getElementById("album-main").innerHTML = "";
 }
 
 /* ---------- HISTORY ---------- */
