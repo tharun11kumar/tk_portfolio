@@ -32,17 +32,17 @@ const CONTENT = {
   // "blurb" is one or two sentences under your name.
   hero: {
     status: "Open to freelance",
-    badges: ["EEE Student · VIT Chennai", "Chennai, India"],
-    blurb: "I don't just edit videos — I chase pacing, rhythm and the right cut. From first frame to final render.",
+    badges: ["Chennai, India"],
+    blurb: "Cinema is a matter of what's in the frame and what's out.",
   },
 
   // The numbers band under About. Each is a short value + a short label.
   // Keep values short (e.g. "2+", "10+", "3") so they read well at large size.
   stats: [
-    { value: "2+", label: "Years editing" },
-    { value: "10+", label: "Projects shipped" },
+    { value: "3+", label: "Years editing" },
+    { value: "25+", label: "Projects shipped" },
     { value: "3", label: "Tools mastered" },
-    { value: "1", label: "Club led" },
+    { value: "3", label: "Clubs led" },
   ],
 
   // The three doors on the landing "gate" screen.
@@ -115,6 +115,11 @@ const CONTENT = {
       title: "Add your next chapter",
       body: "Duplicate this block for every gig, internship, or project worth listing — freelance edits, client shoots, film credits.",
     },
+    {
+      time: "—",
+      title: "Add your next chapter",
+      body: "Duplicate this block for every gig, internship, or project worth listing — freelance edits, client shoots, film credits.",
+    },
   ],
 
   about: {
@@ -129,7 +134,7 @@ const CONTENT = {
   contact: {
     email: "hello@tharunkumar.example",
     socials: [
-      { label: "Instagram", url: "https://instagram.com/" },
+      { label: "Instagram", url: "https://instagram.com/tharun11kumar" },
       { label: "YouTube",   url: "https://youtube.com/" },
       { label: "LinkedIn",  url: "https://linkedin.com/" },
     ],
