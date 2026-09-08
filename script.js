@@ -26,7 +26,8 @@ function renderGateName(){
   const words = CONTENT.name.split(" ");
   let i = 0;
   words.forEach((word, wi) => {
-    const wordSpan = el("span", "word");
+    const isLast = wi === words.length - 1;
+    const wordSpan = el("span", "word" + (isLast && words.length > 1 ? " gradient" : ""));
     [...word].forEach(ch => {
       const letter = el("span", "letter", ch);
       letter.style.setProperty("--ld", `${0.25 + i * 0.045}s`);
@@ -38,8 +39,25 @@ function renderGateName(){
   });
 }
 
+function renderHeroBadges(){
+  const wrap = document.getElementById("hero-badges");
+  wrap.innerHTML = "";
+  const hero = CONTENT.hero || {};
+  if(hero.status){
+    const b = el("span", "badge status", `<span class="dot"></span>${hero.status}`);
+    wrap.appendChild(b);
+  }
+  (hero.badges || []).forEach(text => {
+    wrap.appendChild(el("span", "badge", text));
+  });
+}
+
 function renderGate(){
   renderGateName();
+  renderHeroBadges();
+  document.getElementById("gate-role").textContent = CONTENT.role || "";
+  document.getElementById("gate-blurb").textContent = (CONTENT.hero && CONTENT.hero.blurb) || "";
+
   const wrap = document.getElementById("reel-select");
   wrap.innerHTML = "";
   CONTENT.categories.forEach(cat => {
@@ -285,6 +303,51 @@ function startTimecode(){
   }, 1000/24);
 }
 
+/* ---------- STATS ---------- */
+function renderStats(){
+  const wrap = document.getElementById("stats-grid");
+  wrap.innerHTML = "";
+  (CONTENT.stats || []).forEach(s => {
+    const stat = el("div", "stat");
+    const match = String(s.value).match(/^(\d+)(.*)$/); // split "10+" into 10 and "+"
+    const numPart = match ? match[1] : null;
+    const suffix = match ? match[2] : "";
+    stat.innerHTML = `<div class="stat-value" data-target="${numPart || ""}" data-suffix="${suffix}">${numPart ? "0" + suffix : s.value}</div><div class="stat-label">${s.label}</div>`;
+    wrap.appendChild(stat);
+  });
+}
+
+function initStatsCountUp(){
+  const section = document.getElementById("stats");
+  if(!section) return;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const values = section.querySelectorAll(".stat-value[data-target]");
+  if(reduced){
+    values.forEach(v => { v.textContent = v.dataset.target + v.dataset.suffix; });
+    return;
+  }
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(!entry.isIntersecting) return;
+      values.forEach(v => {
+        const target = parseInt(v.dataset.target, 10);
+        const suffix = v.dataset.suffix;
+        const duration = 900;
+        const start = performance.now();
+        function tick(now){
+          const p = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
+          v.textContent = Math.round(target * eased) + suffix;
+          if(p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      });
+      io.unobserve(entry.target);
+    });
+  }, { threshold: 0.4 });
+  io.observe(section);
+}
+
 /* ---------- SCROLL REVEAL ---------- */
 function initScrollReveal(){
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -330,9 +393,11 @@ document.addEventListener("DOMContentLoaded", () => {
   renderHistory();
   renderAbout();
   renderContact();
+  renderStats();
   startTimecode();
   runLoader();
   initScrollReveal();
+  initStatsCountUp();
   gridFirstRenderDone = true;
 
   document.getElementById("modal-close").addEventListener("click", closeModal);

@@ -88,6 +88,23 @@ Replace the `url` values with your real profile links (and the `email`
 with your real address). Add or remove `{ label, url }` lines for any
 other platform — each one shows up automatically in the footer.
 
+### 6. Editing the top badges and the numbers band
+Near the top of `content.js`:
+```js
+hero: {
+  status: "Open to freelance",              // gets a green dot
+  badges: ["EEE Student · VIT Chennai", "Chennai, India"],
+  blurb: "One or two sentences under your name.",
+},
+stats: [
+  { value: "2+", label: "Years editing" },
+  { value: "10+", label: "Projects shipped" },
+],
+```
+`badges` and `stats` can each have as many or as few entries as you want
+— the layout adjusts automatically. Numbers in `stats` count up
+automatically the first time a visitor scrolls to that section.
+
 ## Deploying to Vercel
 
 **Option A — no coding tools, all in the browser:**

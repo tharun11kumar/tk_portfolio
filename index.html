@@ -23,47 +23,33 @@
 <div class="grain" aria-hidden="true"></div>
 
 <header class="topbar">
-  <a href="#gate" class="logo">TK<span>.</span></a>
-  <nav class="toplinks">
-    <a href="#work">Work</a>
-    <a href="#history">History</a>
-    <a href="#about">About</a>
-    <a href="#contact">Contact</a>
-  </nav>
+  <div class="nav-pill">
+    <a href="#gate" class="logo"><span class="logo-mark"></span>TK</a>
+    <nav class="toplinks">
+      <a href="#work">Work</a>
+      <a href="#about">About</a>
+      <a href="#history">Experience</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a href="#contact" class="nav-cta">Let's talk →</a>
+  </div>
   <div class="timecode" id="timecode" aria-hidden="true">00:00:00:00</div>
 </header>
 
 <!-- ============ GATE / LANDING ============ -->
 <section id="gate" class="gate">
-  <div class="letterbox top"></div>
   <div class="gate-inner">
-    <p class="gate-eyebrow">Editor · Photographer · Filmmaker</p>
+    <div class="hero-badges" id="hero-badges"><!-- populated by script.js from content.hero --></div>
     <h1 class="gate-name" id="gate-name" aria-label="Tharun Kumar"><!-- populated by script.js, split into pop-in letters --></h1>
-    <p class="gate-title">What brings you here?</p>
+    <p class="gate-role" id="gate-role"><!-- populated by script.js --></p>
+    <p class="gate-blurb" id="gate-blurb"><!-- populated by script.js --></p>
+
+    <p class="gate-question">What do you want to see?</p>
     <div class="reel-select" id="reel-select">
       <!-- populated by script.js from content.categories -->
     </div>
-    <p class="gate-hint">Tap a reel to load the work ↓</p>
+    <p class="gate-hint">Or scroll to learn more <span class="scroll-arrow">↓</span></p>
   </div>
-  <div class="letterbox bottom"></div>
-</section>
-
-<!-- ============ WORK ============ -->
-<section id="work" class="work">
-  <div class="section-head reveal">
-    <h2>Selected Work</h2>
-    <div class="tabs" id="tabs"><!-- populated by script.js --></div>
-  </div>
-  <div class="grid" id="work-grid"><!-- populated by script.js --></div>
-</section>
-
-<!-- ============ WORK HISTORY ============ -->
-<section id="history" class="history">
-  <div class="section-head reveal">
-    <h2>Work History</h2>
-    <p class="section-sub">A timeline, not a résumé.</p>
-  </div>
-  <div class="timeline" id="timeline"><!-- populated by script.js --></div>
 </section>
 
 <!-- ============ ABOUT ============ -->
@@ -81,6 +67,29 @@
       <div class="chips" id="kit-chips"><!-- populated by script.js --></div>
     </div>
   </div>
+</section>
+
+<!-- ============ STATS ============ -->
+<section id="stats" class="stats">
+  <div class="stats-grid reveal" id="stats-grid"><!-- populated by script.js from content.stats --></div>
+</section>
+
+<!-- ============ WORK ============ -->
+<section id="work" class="work">
+  <div class="section-head reveal">
+    <h2>Selected Work</h2>
+    <div class="tabs" id="tabs"><!-- populated by script.js --></div>
+  </div>
+  <div class="grid" id="work-grid"><!-- populated by script.js --></div>
+</section>
+
+<!-- ============ EXPERIENCE ============ -->
+<section id="history" class="history">
+  <div class="section-head reveal">
+    <h2>Experience</h2>
+    <p class="section-sub">A timeline, not a résumé.</p>
+  </div>
+  <div class="timeline" id="timeline"><!-- populated by script.js --></div>
 </section>
 
 <!-- ============ CONTACT ============ -->

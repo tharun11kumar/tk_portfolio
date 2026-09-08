@@ -1,7 +1,49 @@
+/* ============================================================
+   CONTENT.JS
+   This is the ONLY file you need to edit to update your website.
+   Change the text, links, and image paths below, save the file,
+   commit + push to GitHub, and Vercel redeploys automatically.
+
+   Do not touch index.html or styles.css unless you want to change
+   the actual layout/design — everything here is just your content.
+
+   EDITS & FILMS (one item per project):
+   - "video": a YouTube/Vimeo EMBED url, e.g. https://www.youtube.com/embed/VIDEO_ID
+   - "image": a single cover image path, e.g. "assets/edits/recap-cover.jpg"
+   - Leave both null to keep the generated placeholder.
+
+   PHOTOGRAPHY (one item per ALBUM, not per photo):
+   - Use "images": [ "assets/photos/goa-trip/1.jpg", "assets/photos/goa-trip/2.jpg", ... ]
+   - List every photo in that shoot/album inside the array. The grid
+     will show the first photo as the cover with a photo count badge,
+     and clicking it opens the whole album as a gallery visitors can
+     click or arrow-key through.
+   - Do NOT use "image" (singular) for photography — use "images" (plural).
+   ============================================================ */
+
 const CONTENT = {
 
   name: "Tharun Kumar",
   role: "Editor. Photographer. Filmmaker.",
+
+  // Shown at the very top of the landing page.
+  // "status" gets a small green dot (use it for availability, e.g. "Open to freelance").
+  // "badges" is a list of short quick-facts — location, student status, whatever you want visible up top.
+  // "blurb" is one or two sentences under your name.
+  hero: {
+    status: "Open to freelance",
+    badges: ["EEE Student · VIT Chennai", "Chennai, India"],
+    blurb: "I don't just edit videos — I chase pacing, rhythm and the right cut. From first frame to final render.",
+  },
+
+  // The numbers band under About. Each is a short value + a short label.
+  // Keep values short (e.g. "2+", "10+", "3") so they read well at large size.
+  stats: [
+    { value: "2+", label: "Years editing" },
+    { value: "10+", label: "Projects shipped" },
+    { value: "3", label: "Tools mastered" },
+    { value: "1", label: "Club led" },
+  ],
 
   // The three doors on the landing "gate" screen.
   // id must match the category id used in the work[] list below.
@@ -21,8 +63,8 @@ const CONTENT = {
       year: "2026",
       role: "Tool + Edit",
       description: "A Premiere Pro extension I built that reads a track's beat map and auto-cuts the timeline to the drop — built this to speed up recap and montage edits for Film Society.",
-      image: "Screenshot 2026-09-08 114052.png",
-      video: "https://drive.google.com/file/d/1z8mLwFnMt0f1Z5dY0HT2vqWK2JUexljw/preview",
+      image: null,
+      video: null,
       link: null,
     },
     {
