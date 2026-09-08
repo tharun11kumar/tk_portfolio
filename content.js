@@ -23,7 +23,7 @@
 
 const CONTENT = {
 
-  name: "Tharun",
+  name: "Tharun Kumar",
   role: "Filmmaker.",
 
   // Shown at the very top of the landing page.
