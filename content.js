@@ -24,7 +24,7 @@
 const CONTENT = {
 
   name: "Tharun Kumar",
-  role: "Filmmaker.",
+  role: "Filmmaker",
 
   // Shown at the very top of the landing page.
   // "status" gets a small green dot (use it for availability, e.g. "Open to freelance").
