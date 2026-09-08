@@ -154,8 +154,9 @@ section{ padding:6rem 1.5rem; max-width:var(--maxw); margin:0 auto; }
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/></svg>");
 }
 .card-thumb .play{
-  position:relative; z-index:2; width:44px; height:44px; border-radius:50%;
-  border:1.5px solid rgba(240,237,230,0.7);
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  z-index:2; width:44px; height:44px; border-radius:50%;
+  border:1.5px solid rgba(240,237,230,0.7); background:rgba(4,4,5,0.35);
   display:flex; align-items:center; justify-content:center;
 }
 .card-thumb .play::after{
