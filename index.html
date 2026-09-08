@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tharun Kumar — Editor / Photographer / Filmmaker</title>
+<meta name="description" content="Portfolio of Tharun Kumar — video editor, photographer and filmmaker.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a href="#gate" class="logo">TK<span>.</span></a>
+  <nav class="toplinks">
+    <a href="#work">Work</a>
+    <a href="#history">History</a>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+  </nav>
+  <div class="timecode" id="timecode" aria-hidden="true">00:00:00:00</div>
+</header>
+
+<!-- ============ GATE / LANDING ============ -->
+<section id="gate" class="gate">
+  <div class="letterbox top"></div>
+  <div class="gate-inner">
+    <p class="gate-eyebrow">Tharun Kumar — Showreel Select</p>
+    <h1 class="gate-title">What brings<br>you here?</h1>
+    <div class="reel-select" id="reel-select">
+      <!-- populated by script.js from content.categories -->
+    </div>
+    <p class="gate-hint">Tap a reel to load the work ↓</p>
+  </div>
+  <div class="letterbox bottom"></div>
+</section>
+
+<!-- ============ WORK ============ -->
+<section id="work" class="work">
+  <div class="section-head">
+    <h2>Selected Work</h2>
+    <div class="tabs" id="tabs"><!-- populated by script.js --></div>
+  </div>
+  <div class="grid" id="work-grid"><!-- populated by script.js --></div>
+</section>
+
+<!-- ============ WORK HISTORY ============ -->
+<section id="history" class="history">
+  <div class="section-head">
+    <h2>Work History</h2>
+    <p class="section-sub">A timeline, not a résumé.</p>
+  </div>
+  <div class="timeline" id="timeline"><!-- populated by script.js --></div>
+</section>
+
+<!-- ============ ABOUT ============ -->
+<section id="about" class="about">
+  <div class="about-portrait">
+    <div class="portrait-frame" id="portrait"><span>PORTRAIT</span></div>
+    <div class="sprocket left"></div>
+    <div class="sprocket right"></div>
+  </div>
+  <div class="about-copy">
+    <h2>About</h2>
+    <div id="about-text" class="about-text"><!-- populated by script.js --></div>
+    <div class="kit">
+      <h3>Kit &amp; Tools</h3>
+      <div class="chips" id="kit-chips"><!-- populated by script.js --></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<footer id="contact" class="contact">
+  <h2>Let's make something.</h2>
+  <a class="contact-email" id="contact-email" href="#"></a>
+  <div class="socials" id="socials"><!-- populated by script.js --></div>
+  <p class="fine-print">© <span id="year"></span> Tharun Kumar. Built frame by frame.</p>
+</footer>
+
+<!-- ============ PROJECT MODAL ============ -->
+<div class="modal" id="modal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true">
+    <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
+    <div class="modal-thumb" id="modal-thumb"></div>
+    <p class="modal-cat" id="modal-cat"></p>
+    <h3 id="modal-title"></h3>
+    <p class="modal-meta" id="modal-meta"></p>
+    <p id="modal-desc"></p>
+    <a id="modal-link" href="#" target="_blank" rel="noopener">View project ↗</a>
+  </div>
+</div>
+
+<script src="content.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
