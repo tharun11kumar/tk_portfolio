@@ -86,7 +86,22 @@
 <div class="modal" id="modal" aria-hidden="true">
   <div class="modal-card" role="dialog" aria-modal="true">
     <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
-    <div class="modal-thumb" id="modal-thumb"></div>
+    <!-- shown for edits / films (single video or image) -->
+    <div id="modal-single">
+      <div class="modal-thumb" id="modal-thumb"></div>
+    </div>
+
+    <!-- shown for photography (multi-photo album) -->
+    <div id="modal-album" style="display:none">
+      <div class="album-main" id="album-main"></div>
+      <div class="album-nav">
+        <button id="album-prev" aria-label="Previous photo">‹</button>
+        <span id="album-count"></span>
+        <button id="album-next" aria-label="Next photo">›</button>
+      </div>
+      <div class="album-thumbs" id="album-thumbs"></div>
+    </div>
+
     <p class="modal-cat" id="modal-cat"></p>
     <h3 id="modal-title"></h3>
     <p class="modal-meta" id="modal-meta"></p>

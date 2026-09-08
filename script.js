@@ -53,6 +53,14 @@ function renderTabs(){
 
 /* ---------- WORK GRID ---------- */
 function thumbHTML(item){
+  // photo album: cover is the first image, with a photo-count badge
+  if(item.images && item.images.length){
+    const cover = item.images[0]
+      ? `<img src="${item.images[0]}" alt="${item.title}">`
+      : `<div class="ph"></div>`;
+    return `${cover}<span class="count-badge">${item.images.length} photo${item.images.length===1?"":"s"}</span>`;
+  }
+  // single edit/film: one image or a placeholder + play icon if it's a video
   if(item.image){
     return `<img src="${item.image}" alt="${item.title}">`;
   }
@@ -91,30 +99,68 @@ function labelFor(catId){
 }
 
 /* ---------- MODAL ---------- */
+let galleryImages = [];
+let galleryIndex = 0;
+
 function openModal(item){
   const modal = document.getElementById("modal");
   document.getElementById("modal-cat").textContent = labelFor(item.category);
   document.getElementById("modal-title").textContent = item.title;
   document.getElementById("modal-meta").textContent = `${item.role} · ${item.year}`;
   document.getElementById("modal-desc").textContent = item.description || "";
-  const thumb = document.getElementById("modal-thumb");
-  const accent = ACCENT_BY_CATEGORY[item.category] || "var(--accent)";
-  if(item.video){
-    thumb.style.background = "none";
-    thumb.innerHTML = `<iframe src="${item.video}" allowfullscreen title="${item.title}"></iframe>`;
-  } else if(item.image){
-    thumb.style.background = "none";
-    thumb.innerHTML = `<img src="${item.image}" alt="${item.title}">`;
+
+  const singleWrap = document.getElementById("modal-single");
+  const albumWrap = document.getElementById("modal-album");
+
+  if(item.images && item.images.length){
+    // ---- photo album / gallery mode ----
+    singleWrap.style.display = "none";
+    albumWrap.style.display = "block";
+    galleryImages = item.images;
+    galleryIndex = 0;
+    renderGalleryFrame();
   } else {
-    thumb.style.background = `linear-gradient(150deg, ${accent}, #08090b 78%)`;
-    thumb.innerHTML = "";
+    // ---- single edit / film mode ----
+    albumWrap.style.display = "none";
+    singleWrap.style.display = "block";
+    const thumb = document.getElementById("modal-thumb");
+    const accent = ACCENT_BY_CATEGORY[item.category] || "var(--accent)";
+    if(item.video){
+      thumb.style.background = "none";
+      thumb.innerHTML = `<iframe src="${item.video}" allowfullscreen title="${item.title}"></iframe>`;
+    } else if(item.image){
+      thumb.style.background = "none";
+      thumb.innerHTML = `<img src="${item.image}" alt="${item.title}">`;
+    } else {
+      thumb.style.background = `linear-gradient(150deg, ${accent}, #08090b 78%)`;
+      thumb.innerHTML = "";
+    }
   }
+
   const link = document.getElementById("modal-link");
   if(item.link){ link.href = item.link; link.style.display = "inline-block"; }
   else { link.style.display = "none"; }
+
   modal.classList.add("open");
   modal.setAttribute("aria-hidden", "false");
 }
+
+function renderGalleryFrame(){
+  const main = document.getElementById("album-main");
+  main.innerHTML = `<img src="${galleryImages[galleryIndex]}" alt="Photo ${galleryIndex+1}">`;
+  document.getElementById("album-count").textContent = `${galleryIndex+1} / ${galleryImages.length}`;
+
+  const thumbs = document.getElementById("album-thumbs");
+  thumbs.innerHTML = "";
+  galleryImages.forEach((src, i) => {
+    const img = el("img", i === galleryIndex ? "active" : "");
+    img.src = src;
+    img.alt = `Thumbnail ${i+1}`;
+    img.addEventListener("click", () => { galleryIndex = i; renderGalleryFrame(); });
+    thumbs.appendChild(img);
+  });
+}
+
 function closeModal(){
   const modal = document.getElementById("modal");
   modal.classList.remove("open");
@@ -196,7 +242,20 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("modal").addEventListener("click", (e) => {
     if(e.target.id === "modal") closeModal();
   });
+  document.getElementById("album-prev").addEventListener("click", () => {
+    galleryIndex = (galleryIndex - 1 + galleryImages.length) % galleryImages.length;
+    renderGalleryFrame();
+  });
+  document.getElementById("album-next").addEventListener("click", () => {
+    galleryIndex = (galleryIndex + 1) % galleryImages.length;
+    renderGalleryFrame();
+  });
   document.addEventListener("keydown", (e) => {
     if(e.key === "Escape") closeModal();
+    const modalOpen = document.getElementById("modal").classList.contains("open");
+    if(modalOpen && galleryImages.length){
+      if(e.key === "ArrowLeft"){ galleryIndex = (galleryIndex - 1 + galleryImages.length) % galleryImages.length; renderGalleryFrame(); }
+      if(e.key === "ArrowRight"){ galleryIndex = (galleryIndex + 1) % galleryImages.length; renderGalleryFrame(); }
+    }
   });
 });

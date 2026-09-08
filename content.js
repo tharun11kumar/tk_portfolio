@@ -7,11 +7,18 @@
    Do not touch index.html or styles.css unless you want to change
    the actual layout/design — everything here is just your content.
 
-   THUMBNAILS / IMAGES:
-   Set "image" to a path like "assets/photos/my-photo.jpg" once you
-   add real files into an /assets folder. Leave it as null to keep
-   the generated placeholder (a colored still with a grain texture).
-   VIDEO EMBEDS: set "video" to a YouTube/Vimeo URL for edits/films.
+   EDITS & FILMS (one item per project):
+   - "video": a YouTube/Vimeo EMBED url, e.g. https://www.youtube.com/embed/VIDEO_ID
+   - "image": a single cover image path, e.g. "assets/edits/recap-cover.jpg"
+   - Leave both null to keep the generated placeholder.
+
+   PHOTOGRAPHY (one item per ALBUM, not per photo):
+   - Use "images": [ "assets/photos/goa-trip/1.jpg", "assets/photos/goa-trip/2.jpg", ... ]
+   - List every photo in that shoot/album inside the array. The grid
+     will show the first photo as the cover with a photo count badge,
+     and clicking it opens the whole album as a gallery visitors can
+     click or arrow-key through.
+   - Do NOT use "image" (singular) for photography — use "images" (plural).
    ============================================================ */
 
 const CONTENT = {
@@ -53,12 +60,11 @@ const CONTENT = {
     },
     {
       category: "photography",
-      title: "Add your photo series",
+      title: "Add your photo album",
       year: "2026",
       role: "Photographer",
-      description: "Placeholder project — swap in a real shoot. Give it a title, a year, and a couple of sentences on what you were going for.",
-      image: null,
-      video: null,
+      description: "Placeholder album — replace 'images' below with the real photos from a shoot. List every photo from that shoot in the array; it becomes one clickable album with all of them inside.",
+      images: [], // e.g. ["assets/photos/album-name/1.jpg", "assets/photos/album-name/2.jpg"]
       link: null,
     },
     {
