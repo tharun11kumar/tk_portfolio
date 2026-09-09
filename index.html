@@ -38,6 +38,7 @@
 
 <!-- ============ GATE / LANDING ============ -->
 <section id="gate" class="gate">
+  <div class="gate-flare" aria-hidden="true"></div>
   <div class="gate-inner">
     <div class="slate glass" id="slate"><!-- populated by script.js from content.hero.slate --></div>
 
@@ -58,15 +59,16 @@
     <div class="portrait-frame" id="portrait"><span>PORTRAIT</span></div>
     <div class="sprocket left"></div>
     <div class="sprocket right"></div>
+    <div class="portrait-caption glass" id="portrait-caption"><!-- populated by script.js --></div>
   </div>
-  <div class="about-copy reveal" style="--d:0.15s">
+  <div class="about-bio-card glass reveal" style="--d:0.15s">
     <h2>About</h2>
     <div id="about-text" class="about-text"><!-- populated by script.js --></div>
-    <div class="kit">
-      <h3>Kit &amp; Tools</h3>
-      <div class="marquee-wrap">
-        <div class="chips" id="kit-chips"><!-- populated by script.js --></div>
-      </div>
+  </div>
+  <div class="about-kit-card glass reveal" style="--d:0.25s">
+    <h3>Kit &amp; Tools</h3>
+    <div class="marquee-wrap">
+      <div class="chips" id="kit-chips"><!-- populated by script.js --></div>
     </div>
   </div>
 </section>

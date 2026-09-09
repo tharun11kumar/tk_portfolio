@@ -243,9 +243,20 @@ function renderHistory(){
 function renderAbout(){
   const wrap = document.getElementById("about-text");
   wrap.innerHTML = CONTENT.about.paragraphs.map(p => `<p>${p}</p>`).join("");
+
+  const caption = document.getElementById("portrait-caption");
+  if(caption) caption.textContent = CONTENT.about.caption || "";
+
   const chips = document.getElementById("kit-chips");
   chips.innerHTML = "";
-  CONTENT.about.kit.forEach(k => chips.appendChild(el("span", "chip", k)));
+  const kit = CONTENT.about.kit || [];
+  // render the list twice back-to-back so the marquee can loop seamlessly at -50%
+  kit.concat(kit).forEach((k, i) => {
+    const isDup = i >= kit.length;
+    const chip = el("span", "chip" + (isDup ? " dup" : ""), k);
+    if(isDup) chip.setAttribute("aria-hidden", "true");
+    chips.appendChild(chip);
+  });
 }
 
 /* ---------- CONTACT ---------- */

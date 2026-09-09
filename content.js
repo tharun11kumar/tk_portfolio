@@ -125,6 +125,8 @@ const CONTENT = {
   ],
 
   about: {
+    // shown as a small floating tag overlapping the portrait photo
+    caption: "Usually mid color-grade.",
     paragraphs: [
       "I'm Tharun — an editor, photographer and filmmaker based out of Chennai, currently studying Electrical and Electronics Engineering at VIT.",
       "The engineering side isn't separate from the creative side — I like building the tools I edit with as much as I like editing. A beat-detection cutter for Premiere Pro started as a way to save myself time; it's now part of how I work.",
