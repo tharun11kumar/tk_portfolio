@@ -330,6 +330,29 @@ function initStatsCountUp(){
   io.observe(section);
 }
 
+/* ---------- MOBILE NAV ---------- */
+function initMobileNav(){
+  const toggle = document.getElementById("mobile-nav-toggle");
+  const overlay = document.getElementById("mobile-nav-overlay");
+  if(!toggle || !overlay) return;
+
+  function closeMenu(){
+    overlay.classList.remove("open");
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.textContent = "☰";
+  }
+  function openMenu(){
+    overlay.classList.add("open");
+    toggle.setAttribute("aria-expanded", "true");
+    toggle.textContent = "✕";
+  }
+
+  toggle.addEventListener("click", () => {
+    overlay.classList.contains("open") ? closeMenu() : openMenu();
+  });
+  overlay.querySelectorAll("a").forEach(a => a.addEventListener("click", closeMenu));
+}
+
 /* ---------- CUSTOM CURSOR ---------- */
 function initCustomCursor(){
   if(!window.matchMedia("(pointer: fine)").matches) return; // touch devices: skip entirely
@@ -340,10 +363,13 @@ function initCustomCursor(){
   const ring = el("div", "cursor-ring");
   const label = el("span", "cursor-label");
   ring.appendChild(label);
+  // start off-screen so there's no stray circle at (0,0) before the mouse first moves
+  dot.style.transform = "translate(-100px, -100px)";
+  ring.style.transform = "translate(-100px, -100px)";
   document.body.appendChild(dot);
   document.body.appendChild(ring);
 
-  let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
+  let mouseX = -100, mouseY = -100, ringX = -100, ringY = -100;
 
   document.addEventListener("mousemove", (e) => {
     mouseX = e.clientX; mouseY = e.clientY;
@@ -433,6 +459,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initScrollReveal();
   initStatsCountUp();
   initCustomCursor();
+  initMobileNav();
   gridFirstRenderDone = true;
 
   document.getElementById("modal-close").addEventListener("click", closeModal);

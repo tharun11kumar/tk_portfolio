@@ -25,19 +25,27 @@
 
 <div class="grain" aria-hidden="true"></div>
 
-<header class="topbar">
-  <div class="nav-pill">
-    <a href="#gate" class="logo"><span class="logo-mark"></span>TK</a>
-    <nav class="toplinks">
-      <a href="#work">Work</a>
-      <a href="#about">About</a>
-      <a href="#history">Experience</a>
-      <a href="#contact">Contact</a>
-    </nav>
-    <a href="#contact" class="nav-cta">Let's talk →</a>
+<nav class="side-nav" id="side-nav">
+  <a href="#gate" class="side-logo"><span class="logo-mark"></span></a>
+  <div class="side-links">
+    <a href="#work">Work</a>
+    <a href="#about">About</a>
+    <a href="#history">Experience</a>
+    <a href="#contact">Contact</a>
   </div>
-  <div class="timecode" id="timecode" aria-hidden="true">00:00:00:00</div>
-</header>
+  <a href="#contact" class="side-cta">Talk</a>
+</nav>
+
+<button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Open menu" aria-expanded="false">☰</button>
+<div class="mobile-nav-overlay" id="mobile-nav-overlay">
+  <a href="#work">Work</a>
+  <a href="#about">About</a>
+  <a href="#history">Experience</a>
+  <a href="#contact">Contact</a>
+  <a href="#contact" class="mobile-cta">Let's talk →</a>
+</div>
+
+<div class="timecode" id="timecode" aria-hidden="true">00:00:00:00</div>
 
 <!-- ============ GATE / LANDING ============ -->
 <section id="gate" class="gate">
