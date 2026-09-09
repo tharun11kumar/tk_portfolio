@@ -20,6 +20,9 @@
   <p class="loader-text">TK — LOADING REEL</p>
 </div>
 
+<div class="bg-glow bg-glow-a" aria-hidden="true"></div>
+<div class="bg-glow bg-glow-b" aria-hidden="true"></div>
+
 <div class="grain" aria-hidden="true"></div>
 
 <header class="topbar">
@@ -39,16 +42,16 @@
 <!-- ============ GATE / LANDING ============ -->
 <section id="gate" class="gate">
   <div class="gate-inner">
-    <div class="hero-badges" id="hero-badges"><!-- populated by script.js from content.hero --></div>
-    <h1 class="gate-name" id="gate-name" aria-label="Tharun Kumar"><!-- populated by script.js, split into pop-in letters --></h1>
+    <div class="slate glass" id="slate"><!-- populated by script.js from content.hero.slate --></div>
+
+    <h1 class="gate-name" id="gate-name">Tharun Kumar</h1>
     <p class="gate-role" id="gate-role"><!-- populated by script.js --></p>
     <p class="gate-blurb" id="gate-blurb"><!-- populated by script.js --></p>
 
-    <p class="gate-question">What do you want to see?</p>
+    <p class="gate-question">Load a reel —</p>
     <div class="reel-select" id="reel-select">
       <!-- populated by script.js from content.categories -->
     </div>
-    <p class="gate-hint">Or scroll to learn more <span class="scroll-arrow">↓</span></p>
   </div>
 </section>
 
@@ -64,14 +67,18 @@
     <div id="about-text" class="about-text"><!-- populated by script.js --></div>
     <div class="kit">
       <h3>Kit &amp; Tools</h3>
-      <div class="chips" id="kit-chips"><!-- populated by script.js --></div>
+      <div class="marquee-wrap">
+        <div class="chips" id="kit-chips"><!-- populated by script.js --></div>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- ============ STATS ============ -->
 <section id="stats" class="stats">
-  <div class="stats-grid reveal" id="stats-grid"><!-- populated by script.js from content.stats --></div>
+  <div class="stats-strip glass reveal">
+    <div class="stats-track" id="stats-grid"><!-- populated by script.js from content.stats --></div>
+  </div>
 </section>
 
 <!-- ============ WORK ============ -->

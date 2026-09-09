@@ -20,41 +20,20 @@ function el(tag, className, html){
 }
 
 /* ---------- GATE ---------- */
-function renderGateName(){
-  const h1 = document.getElementById("gate-name");
-  h1.innerHTML = "";
-  const words = CONTENT.name.split(" ");
-  let i = 0;
-  words.forEach((word, wi) => {
-    const isLast = wi === words.length - 1;
-    const wordSpan = el("span", "word" + (isLast && words.length > 1 ? " gradient" : ""));
-    [...word].forEach(ch => {
-      const letter = el("span", "letter", ch);
-      letter.style.setProperty("--ld", `${0.25 + i * 0.045}s`);
-      wordSpan.appendChild(letter);
-      i++;
-    });
-    h1.appendChild(wordSpan);
-    if(wi < words.length - 1) h1.appendChild(document.createTextNode(" "));
-  });
-}
-
-function renderHeroBadges(){
-  const wrap = document.getElementById("hero-badges");
+function renderSlate(){
+  const wrap = document.getElementById("slate");
   wrap.innerHTML = "";
-  const hero = CONTENT.hero || {};
-  if(hero.status){
-    const b = el("span", "badge status", `<span class="dot"></span>${hero.status}`);
-    wrap.appendChild(b);
-  }
-  (hero.badges || []).forEach(text => {
-    wrap.appendChild(el("span", "badge", text));
+  const fields = (CONTENT.hero && CONTENT.hero.slate) || [];
+  fields.forEach(f => {
+    const field = el("div", "slate-field");
+    field.innerHTML = `<span class="sf-label">${f.label}</span><span class="sf-value">${f.value}</span>`;
+    wrap.appendChild(field);
   });
 }
 
 function renderGate(){
-  renderGateName();
-  renderHeroBadges();
+  document.getElementById("gate-name").textContent = CONTENT.name || "";
+  renderSlate();
   document.getElementById("gate-role").textContent = CONTENT.role || "";
   document.getElementById("gate-blurb").textContent = (CONTENT.hero && CONTENT.hero.blurb) || "";
 
@@ -62,7 +41,7 @@ function renderGate(){
   wrap.innerHTML = "";
   CONTENT.categories.forEach(cat => {
     const btn = el("button", "reel");
-    btn.innerHTML = `<span>${cat.label}</span><span class="reel-hint">${cat.hint}</span>`;
+    btn.innerHTML = `<span class="reel-icon"></span><span class="reel-label">${cat.label}</span><span class="reel-hint">${cat.hint}</span>`;
     btn.addEventListener("click", () => {
       activeCategory = cat.id;
       renderTabs();

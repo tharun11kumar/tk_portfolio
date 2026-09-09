@@ -24,25 +24,32 @@
 const CONTENT = {
 
   name: "Tharun Kumar",
-  role: "Filmmaker",
+  role: "Editor. Photographer. Filmmaker.",
 
   // Shown at the very top of the landing page.
   // "status" gets a small green dot (use it for availability, e.g. "Open to freelance").
   // "badges" is a list of short quick-facts — location, student status, whatever you want visible up top.
   // "blurb" is one or two sentences under your name.
+  // Shown as a small "production slate" panel above your name — like the
+  // info card on a film slate. Add/remove/rename fields freely; each is
+  // just a { label, value } pair.
   hero: {
-    status: "Open to freelance",
-    badges: ["Chennai, India"],
-    blurb: "Cinema is a matter of what's in the frame and what's out.",
+    slate: [
+      { label: "ROLE",   value: "Editor / DP / Director" },
+      { label: "STATUS", value: "Open for freelance" },
+      { label: "BASED",  value: "Chennai, India" },
+      { label: "REEL",   value: "No. 001" },
+    ],
+    blurb: "I don't just edit videos — I chase pacing, rhythm and the right cut. From first frame to final render.",
   },
 
   // The numbers band under About. Each is a short value + a short label.
   // Keep values short (e.g. "2+", "10+", "3") so they read well at large size.
   stats: [
-    { value: "3+", label: "Years editing" },
-    { value: "25+", label: "Projects shipped" },
+    { value: "2+", label: "Years editing" },
+    { value: "10+", label: "Projects shipped" },
     { value: "3", label: "Tools mastered" },
-    { value: "3", label: "Clubs led" },
+    { value: "1", label: "Club led" },
   ],
 
   // The three doors on the landing "gate" screen.
@@ -115,11 +122,6 @@ const CONTENT = {
       title: "Add your next chapter",
       body: "Duplicate this block for every gig, internship, or project worth listing — freelance edits, client shoots, film credits.",
     },
-    {
-      time: "—",
-      title: "Add your next chapter",
-      body: "Duplicate this block for every gig, internship, or project worth listing — freelance edits, client shoots, film credits.",
-    },
   ],
 
   about: {
@@ -134,7 +136,7 @@ const CONTENT = {
   contact: {
     email: "hello@tharunkumar.example",
     socials: [
-      { label: "Instagram", url: "https://instagram.com/tharun11kumar" },
+      { label: "Instagram", url: "https://instagram.com/" },
       { label: "YouTube",   url: "https://youtube.com/" },
       { label: "LinkedIn",  url: "https://linkedin.com/" },
     ],
