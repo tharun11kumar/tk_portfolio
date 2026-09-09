@@ -41,6 +41,7 @@ function renderGate(){
   wrap.innerHTML = "";
   CONTENT.categories.forEach(cat => {
     const btn = el("button", "reel");
+    btn.setAttribute("data-cursor", "Load");
     btn.innerHTML = `<span class="reel-icon"></span><span class="reel-label">${cat.label}</span><span class="reel-hint">${cat.hint}</span>`;
     btn.addEventListener("click", () => {
       activeCategory = cat.id;
@@ -128,6 +129,7 @@ function renderGrid(){
       card.classList.add("reveal");
       card.style.setProperty("--d", `${i * 0.08}s`);
     }
+    card.setAttribute("data-cursor", item.images && item.images.length ? "View" : item.video ? "Play" : "View");
     const accent = ACCENT_BY_CATEGORY[item.category] || "var(--accent)";
     card.innerHTML = `
       <div class="card-thumb" style="background:linear-gradient(150deg, ${accent}, #08090b 78%)">
@@ -206,6 +208,7 @@ function renderGalleryFrame(){
     const img = el("img", i === galleryIndex ? "active" : "");
     img.src = src;
     img.alt = `Thumbnail ${i+1}`;
+    img.setAttribute("data-cursor", "View");
     img.addEventListener("click", () => { galleryIndex = i; renderGalleryFrame(); });
     thumbs.appendChild(img);
   });
@@ -327,6 +330,58 @@ function initStatsCountUp(){
   io.observe(section);
 }
 
+/* ---------- CUSTOM CURSOR ---------- */
+function initCustomCursor(){
+  if(!window.matchMedia("(pointer: fine)").matches) return; // touch devices: skip entirely
+
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const dot = el("div", "cursor-dot");
+  const ring = el("div", "cursor-ring");
+  const label = el("span", "cursor-label");
+  ring.appendChild(label);
+  document.body.appendChild(dot);
+  document.body.appendChild(ring);
+
+  let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
+
+  document.addEventListener("mousemove", (e) => {
+    mouseX = e.clientX; mouseY = e.clientY;
+    dot.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%,-50%)`;
+    if(reduced){
+      ring.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%,-50%)`;
+    }
+  });
+
+  if(!reduced){
+    (function follow(){
+      ringX += (mouseX - ringX) * 0.18;
+      ringY += (mouseY - ringY) * 0.18;
+      ring.style.transform = `translate(${ringX}px, ${ringY}px) translate(-50%,-50%)`;
+      requestAnimationFrame(follow);
+    })();
+  }
+
+  // event delegation so this works on cards/buttons rendered after this runs
+  document.addEventListener("mouseover", (e) => {
+    const target = e.target.closest("[data-cursor], a, button");
+    if(!target) return;
+    label.textContent = target.getAttribute("data-cursor") || "";
+    ring.classList.add("hovering");
+    dot.classList.add("hovering");
+  });
+  document.addEventListener("mouseout", (e) => {
+    const target = e.target.closest("[data-cursor], a, button");
+    if(!target) return;
+    ring.classList.remove("hovering");
+    dot.classList.remove("hovering");
+    label.textContent = "";
+  });
+
+  document.addEventListener("mouseleave", () => { dot.style.opacity = "0"; ring.style.opacity = "0"; });
+  document.addEventListener("mouseenter", () => { dot.style.opacity = "1"; ring.style.opacity = "1"; });
+}
+
 /* ---------- SCROLL REVEAL ---------- */
 function initScrollReveal(){
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -377,6 +432,7 @@ document.addEventListener("DOMContentLoaded", () => {
   runLoader();
   initScrollReveal();
   initStatsCountUp();
+  initCustomCursor();
   gridFirstRenderDone = true;
 
   document.getElementById("modal-close").addEventListener("click", closeModal);

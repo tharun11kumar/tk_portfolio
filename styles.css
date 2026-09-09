@@ -21,6 +21,37 @@
 }
 
 /* ============================================================
+   CUSTOM CURSOR — reticle dot + trailing ring, desktop (fine pointer) only
+   ============================================================ */
+@media (pointer: fine){
+  *{ cursor:none !important; }
+}
+.cursor-dot, .cursor-ring{
+  position:fixed; top:0; left:0; pointer-events:none; z-index:600;
+  transform:translate(-50%,-50%);
+}
+.cursor-dot{
+  width:6px; height:6px; border-radius:50%; background:var(--accent);
+  transition:opacity .3s, transform .15s var(--ease);
+}
+.cursor-ring{
+  width:34px; height:34px; border-radius:50%; border:1.5px solid rgba(240,237,230,0.4);
+  display:flex; align-items:center; justify-content:center;
+  transition:width .35s var(--ease), height .35s var(--ease), border-color .35s var(--ease), background .35s var(--ease), opacity .3s;
+}
+.cursor-ring .cursor-label{
+  font-family:var(--body); font-size:0.6rem; letter-spacing:0.06em; text-transform:uppercase;
+  color:var(--text); opacity:0; transition:opacity .25s var(--ease);
+}
+.cursor-ring.hovering{
+  width:64px; height:64px; border-color:var(--accent); background:rgba(228,87,46,0.12);
+}
+.cursor-ring.hovering .cursor-label{ opacity:1; }
+.cursor-dot.hovering{ opacity:0; }
+@media (max-width:720px), (pointer: coarse){
+  .cursor-dot, .cursor-ring{ display:none; }
+}
+/* ============================================================
    LOADING SCREEN — one clapboard "clap" on first load
    ============================================================ */
 html.is-loading{ overflow:hidden; }
