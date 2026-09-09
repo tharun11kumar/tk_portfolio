@@ -330,29 +330,6 @@ function initStatsCountUp(){
   io.observe(section);
 }
 
-/* ---------- MOBILE NAV ---------- */
-function initMobileNav(){
-  const toggle = document.getElementById("mobile-nav-toggle");
-  const overlay = document.getElementById("mobile-nav-overlay");
-  if(!toggle || !overlay) return;
-
-  function closeMenu(){
-    overlay.classList.remove("open");
-    toggle.setAttribute("aria-expanded", "false");
-    toggle.textContent = "☰";
-  }
-  function openMenu(){
-    overlay.classList.add("open");
-    toggle.setAttribute("aria-expanded", "true");
-    toggle.textContent = "✕";
-  }
-
-  toggle.addEventListener("click", () => {
-    overlay.classList.contains("open") ? closeMenu() : openMenu();
-  });
-  overlay.querySelectorAll("a").forEach(a => a.addEventListener("click", closeMenu));
-}
-
 /* ---------- CUSTOM CURSOR ---------- */
 function initCustomCursor(){
   if(!window.matchMedia("(pointer: fine)").matches) return; // touch devices: skip entirely
@@ -459,7 +436,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initScrollReveal();
   initStatsCountUp();
   initCustomCursor();
-  initMobileNav();
   gridFirstRenderDone = true;
 
   document.getElementById("modal-close").addEventListener("click", closeModal);
