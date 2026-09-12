@@ -104,24 +104,22 @@ html.is-loading{ overflow:hidden; }
 }
 
 /* one-time staggered entrance for the gate, played right after the loader clears */
-.slate, .gate-role, .gate-blurb, .gate-question, .reel-select{
+.gate-name, .gate-role, .gate-blurb, .gate-question, .reel-select{
   opacity:0; transform:translateY(14px);
   transition:opacity 0.7s var(--ease), transform 0.7s var(--ease);
 }
-.intro-play .slate{         transition-delay:0.05s; }
-.intro-play .gate-role{     transition-delay:0.95s; }
-.intro-play .gate-blurb{    transition-delay:1.08s; }
-.intro-play .gate-question{ transition-delay:1.25s; }
-.intro-play .reel-select{   transition-delay:1.38s; }
-.intro-play .slate,
+.intro-play .gate-name{     transition-delay:0.1s; }
+.intro-play .gate-role{     transition-delay:0.85s; }
+.intro-play .gate-blurb{    transition-delay:0.98s; }
+.intro-play .gate-question{ transition-delay:1.15s; }
+.intro-play .reel-select{   transition-delay:1.28s; }
+.intro-play .gate-name,
 .intro-play .gate-role,
 .intro-play .gate-blurb,
 .intro-play .gate-question,
 .intro-play .reel-select{ opacity:1; transform:translateY(0); }
-/* the name itself racks into focus starting right after the slate appears */
-.intro-play .gate-name{ transition-delay:0.3s; }
 @media (prefers-reduced-motion: reduce){
-  .slate, .gate-role, .gate-blurb, .gate-question, .reel-select{
+  .gate-name, .gate-role, .gate-blurb, .gate-question, .reel-select{
     opacity:1; transform:none; transition:none;
   }
 }
@@ -141,26 +139,14 @@ html.is-loading{ overflow:hidden; }
 }
 
 /* ============================================================
-   GATE NAME — "Tharun Kumar" racks into focus after the loader clears,
-   like pulling focus on a lens (with a slight chromatic split settling in)
+   GATE NAME — big gradient wordmark, breaks onto its own line
+   before the surname (set via JS from CONTENT.name)
    ============================================================ */
 .gate-name{
-  font-size:clamp(3rem, 12vw, 7rem);
-  line-height:0.92; margin:1.6rem 0 1.2rem;
-  filter:blur(14px);
-  text-shadow:
-    3px 0 0 rgba(228,87,46,0.55),
-    -3px 0 0 rgba(63,143,138,0.55);
-  opacity:0;
-  transition:filter 1s var(--ease), text-shadow 1s var(--ease), opacity 0.4s linear;
-}
-.intro-play .gate-name{
-  filter:blur(0px);
-  text-shadow:0 0 0 rgba(228,87,46,0), 0 0 0 rgba(63,143,138,0);
-  opacity:1;
-}
-@media (prefers-reduced-motion: reduce){
-  .gate-name{ filter:none; text-shadow:none; opacity:1; transition:none; }
+  font-size:clamp(2.6rem, 10vw, 6rem);
+  line-height:0.98; letter-spacing:-0.01em; margin:0 0 1.2rem;
+  background:linear-gradient(100deg, var(--text) 0%, var(--accent) 35%, var(--violet) 65%, var(--teal) 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
 }
 
 *{ box-sizing:border-box; }
@@ -231,43 +217,42 @@ section{ padding:6rem 1.5rem; max-width:var(--maxw); margin:0 auto; }
 }
 .gate-inner{ max-width:820px; position:relative; z-index:1; }
 
-/* lens-flare light beam behind the hero — like a projector or camera-flash streak */
-.gate-flare{
-  position:absolute; top:-8%; left:50%; width:2px; height:65%;
-  background:linear-gradient(to bottom,
-    transparent, rgba(228,87,46,0.45) 38%, rgba(240,237,230,0.85) 50%,
-    rgba(63,143,138,0.45) 62%, transparent);
-  transform:translateX(-50%); pointer-events:none; z-index:0;
+/* color blooms behind the collage — soft atmosphere, not a hard light source */
+.hero-blooms{
+  position:absolute; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(circle at 38% 45%, rgba(228,87,46,0.22), transparent 42%),
+    radial-gradient(circle at 64% 38%, rgba(91,75,138,0.2), transparent 44%),
+    radial-gradient(circle at 50% 62%, rgba(63,143,138,0.16), transparent 46%);
+  filter:blur(6px);
 }
-.gate-flare::before{
-  content:""; position:absolute; top:42%; left:50%; width:260px; height:260px;
-  background:radial-gradient(circle, rgba(240,237,230,0.22), transparent 70%);
-  transform:translate(-50%,-50%); filter:blur(22px);
-}
-@media (prefers-reduced-motion: reduce){ .gate-flare{ opacity:0.7; } }
 
-/* moody glass surface — reused for the slate panel, the stats strip, etc. */
+/* diagonal cascade of thumbnail-style cards behind the wordmark — decorative only */
+.hero-fan{ position:absolute; inset:0; z-index:0; pointer-events:none; display:none; }
+@media(min-width:900px){ .hero-fan{ display:block; } }
+.fan-card{
+  position:absolute; border-radius:20px; overflow:hidden;
+  aspect-ratio:3/4; opacity:0.85;
+  box-shadow:0 20px 40px -22px rgba(0,0,0,0.7);
+}
+.fan-card::after{
+  content:""; position:absolute; inset:0; opacity:0.3;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+.fan-card:nth-child(1){ width:110px; left:1%;  top:58%; transform:rotate(-20deg); background:linear-gradient(160deg, var(--accent), #08090b 80%); }
+.fan-card:nth-child(2){ width:125px; left:13%; top:38%; transform:rotate(-13deg); background:linear-gradient(160deg, var(--teal), #08090b 80%); }
+.fan-card:nth-child(3){ width:140px; left:27%; top:22%; transform:rotate(-6deg);  background:linear-gradient(160deg, var(--violet), #08090b 80%); }
+.fan-card:nth-child(4){ width:150px; left:42%; top:13%; transform:rotate(0deg);   background:linear-gradient(160deg, var(--accent), #08090b 80%); }
+.fan-card:nth-child(5){ width:140px; left:58%; top:19%; transform:rotate(7deg);   background:linear-gradient(160deg, var(--teal), #08090b 80%); }
+.fan-card:nth-child(6){ width:125px; left:73%; top:33%; transform:rotate(14deg);  background:linear-gradient(160deg, var(--violet), #08090b 80%); }
+.fan-card:nth-child(7){ width:110px; left:87%; top:52%; transform:rotate(20deg);  background:linear-gradient(160deg, var(--accent), #08090b 80%); }
+
+/* moody glass surface — reused for the stats strip, about cards, portrait caption */
 .glass{
   background:rgba(255,255,255,0.03);
   backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
   border:1px solid rgba(255,255,255,0.07);
 }
-
-/* production slate — replaces generic "badge" pills with a proper film-slate readout */
-.slate{
-  display:inline-grid; grid-template-columns:repeat(2, auto);
-  gap:0.6rem 2.2rem;
-  padding:1.1rem 1.6rem;
-  border-radius:12px;
-  box-shadow:0 0 40px -12px rgba(228,87,46,0.18);
-  margin-bottom:0.4rem;
-}
-.slate-field{ text-align:left; }
-.slate-field .sf-label{
-  display:block; font-size:0.62rem; letter-spacing:0.12em; color:var(--accent);
-  font-weight:600; margin-bottom:0.15rem;
-}
-.slate-field .sf-value{ font-size:0.85rem; color:var(--text); white-space:nowrap; }
 
 .gate-role{
   font-family:var(--display); font-weight:700; font-size:clamp(1.1rem,3vw,1.5rem);
@@ -432,7 +417,7 @@ section{ padding:6rem 1.5rem; max-width:var(--maxw); margin:0 auto; }
     grid-template-areas:"portrait bio" "portrait kit";
   }
 }
-.about-portrait{ grid-area:portrait; position:relative; }
+.about-portrait{ grid-area:portrait; position:relative; align-self:start; }
 .about-bio-card{ grid-area:bio; border-radius:16px; padding:1.8rem; }
 .about-kit-card{ grid-area:kit; border-radius:16px; padding:1.8rem; display:flex; flex-direction:column; justify-content:center; }
 

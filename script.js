@@ -20,20 +20,19 @@ function el(tag, className, html){
 }
 
 /* ---------- GATE ---------- */
-function renderSlate(){
-  const wrap = document.getElementById("slate");
-  wrap.innerHTML = "";
-  const fields = (CONTENT.hero && CONTENT.hero.slate) || [];
-  fields.forEach(f => {
-    const field = el("div", "slate-field");
-    field.innerHTML = `<span class="sf-label">${f.label}</span><span class="sf-value">${f.value}</span>`;
-    wrap.appendChild(field);
-  });
+function renderGateName(){
+  const h1 = document.getElementById("gate-name");
+  const parts = (CONTENT.name || "").trim().split(" ");
+  if(parts.length > 1){
+    const last = parts.pop();
+    h1.innerHTML = `${parts.join(" ")}<br>${last}`;
+  } else {
+    h1.textContent = CONTENT.name || "";
+  }
 }
 
 function renderGate(){
-  document.getElementById("gate-name").textContent = CONTENT.name || "";
-  renderSlate();
+  renderGateName();
   document.getElementById("gate-role").textContent = CONTENT.role || "";
   document.getElementById("gate-blurb").textContent = (CONTENT.hero && CONTENT.hero.blurb) || "";
 
