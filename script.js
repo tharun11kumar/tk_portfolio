@@ -340,6 +340,24 @@ function initStatsCountUp(){
   io.observe(section);
 }
 
+/* ---------- HERO PARALLAX ---------- */
+function initHeroParallax(){
+  const fan = document.querySelector(".hero-fan");
+  const gate = document.getElementById("gate");
+  if(!fan || !gate) return;
+  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  gate.addEventListener("mousemove", (e) => {
+    const rect = gate.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;  // -0.5 .. 0.5
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    fan.style.transform = `translate(${px * -24}px, ${py * -16}px)`;
+  });
+  gate.addEventListener("mouseleave", () => {
+    fan.style.transform = "translate(0, 0)";
+  });
+}
+
 /* ---------- CUSTOM CURSOR ---------- */
 function initCustomCursor(){
   if(!window.matchMedia("(pointer: fine)").matches) return; // touch devices: skip entirely
@@ -446,6 +464,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initScrollReveal();
   initStatsCountUp();
   initCustomCursor();
+  initHeroParallax();
   gridFirstRenderDone = true;
 
   document.getElementById("modal-close").addEventListener("click", closeModal);
