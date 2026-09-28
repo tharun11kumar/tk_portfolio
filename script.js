@@ -55,7 +55,7 @@ function getDriveId(url){
 
 function getInstagramCode(url){
   if(!url) return null;
-  const m = String(url).match(/instagram\.com\/https://www.instagram.com/reel/DYtuaBVTRGg/?stkn=MzRlODBiNWFlZA==);
+  const m = String(url).match(/instagram\.com\/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/);
   return m ? m[1] : null;
 }
 
