@@ -30,12 +30,10 @@
     <div></div><div></div><div></div><div></div><div></div><div></div>
   </div>
   <a href="#gate" class="logo" data-cursor="Top">TK<span>®</span></a>
-  <nav class="toplinks">
-    <a href="#work">Work</a>
-    <a href="#about">About</a>
-    <a href="#history">Experience</a>
-    <a href="#contact">Contact</a>
-  </nav>
+  <!-- links are built by script.js from whichever sections actually rendered,
+       so deleting a block in content.js never leaves a nav link pointing at
+       a section that isn't there -->
+  <nav class="toplinks" id="toplinks"></nav>
   <div class="topbar-right">
     <div class="timecode" id="timecode" aria-hidden="true">00:00:00:00</div>
     <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu" data-cursor="Menu">
@@ -46,12 +44,7 @@
 
 <!-- ============ MOBILE MENU ============ -->
 <div class="menu" id="menu" aria-hidden="true">
-  <nav class="menu-links">
-    <a href="#work">Work</a>
-    <a href="#about">About</a>
-    <a href="#history">Experience</a>
-    <a href="#contact">Contact</a>
-  </nav>
+  <nav class="menu-links" id="menu-links"></nav>
 </div>
 
 <!-- ============ GATE / LANDING ============ -->
@@ -104,7 +97,7 @@
 <section id="work" class="work">
   <div class="section-head reveal">
     <div>
-      <p class="section-index">01 — The Reel</p>
+      <p class="section-index">The Reel</p>
       <h2>Selected Work</h2>
     </div>
     <div class="tabs" id="tabs"><!-- populated by script.js --></div>
@@ -116,7 +109,7 @@
 <section id="about" class="about">
   <div class="section-head reveal">
     <div>
-      <p class="section-index">02 — About</p>
+      <p class="section-index">About</p>
       <h2>Behind the cut</h2>
     </div>
   </div>
@@ -148,16 +141,64 @@
   </div>
 </section>
 
+<!-- ============ SKILLS & TECHNOLOGIES ============ -->
+<section id="skills" class="skills">
+  <div class="skills-left">
+    <p class="section-index reveal">Toolkit</p>
+    <h2 class="skills-heading reveal" style="--d:0.06s">
+      <span class="sk-plain" id="skills-heading"></span>
+      <span class="sk-grad" id="skills-heading-accent"></span>
+    </h2>
+    <div class="skill-chips reveal" id="skill-chips" style="--d:0.14s"></div>
+  </div>
+  <div class="skills-bars" id="skill-bars"></div>
+</section>
+
+<!-- ============ SERVICES ============ -->
+<section id="services" class="services">
+  <div class="section-head reveal">
+    <div>
+      <p class="section-index">Services</p>
+      <h2>What I can cut for you</h2>
+      <p class="section-sub">Pick the one that sounds like your project.</p>
+    </div>
+  </div>
+  <div class="service-grid" id="service-grid"></div>
+</section>
+
+<!-- ============ PROCESS ============ -->
+<section id="process" class="process">
+  <div class="section-head reveal">
+    <div>
+      <p class="section-index">Process</p>
+      <h2>How it runs</h2>
+      <p class="section-sub">No mystery, no disappearing for three weeks.</p>
+    </div>
+  </div>
+  <div class="process-track" id="process-track"></div>
+</section>
+
 <!-- ============ EXPERIENCE ============ -->
 <section id="history" class="history">
   <div class="section-head reveal">
     <div>
-      <p class="section-index">03 — Timeline</p>
+      <p class="section-index">Timeline</p>
       <h2>Experience</h2>
       <p class="section-sub">A timeline, not a résumé.</p>
     </div>
   </div>
   <div class="timeline" id="timeline"><!-- populated by script.js --></div>
+</section>
+
+<!-- ============ TESTIMONIALS ============ -->
+<section id="words" class="words">
+  <div class="section-head reveal">
+    <div>
+      <p class="section-index">Words</p>
+      <h2>What people say</h2>
+    </div>
+  </div>
+  <div class="quote-grid" id="quote-grid"></div>
 </section>
 
 <!-- ============ CONTACT ============ -->
@@ -166,7 +207,7 @@
     <span class="ray-beam"></span>
     <span class="ray-bloom"></span>
   </div>
-  <p class="section-index reveal">04 — Contact</p>
+  <p class="section-index reveal">Contact</p>
   <h2 class="reveal">Let's make something.</h2>
   <a class="contact-email reveal" id="contact-email" href="#" style="--d:0.1s" data-cursor="Mail"></a>
   <div class="socials reveal" id="socials" style="--d:0.2s"><!-- populated by script.js --></div>

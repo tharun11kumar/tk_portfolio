@@ -633,6 +633,157 @@ function renderPortrait(){
   img.src = src;
 }
 
+/* ============================================================
+   SKILLS / SERVICES / PROCESS / TESTIMONIALS
+   Each of these hides its own section when content.js has nothing
+   for it, so deleting a block there removes it from the page
+   cleanly instead of leaving a heading over empty space.
+   ============================================================ */
+function hideSection(id){
+  const node = document.getElementById(id);
+  if(node) node.style.display = "none";
+}
+
+function renderSkills(){
+  const s = CONTENT.skills;
+  const chipWrap = document.getElementById("skill-chips");
+  const barWrap = document.getElementById("skill-bars");
+  const chips = (s && s.chips) || [];
+  const bars = (s && s.bars) || [];
+  if(!s || (!chips.length && !bars.length)){ hideSection("skills"); return; }
+
+  document.querySelector("#skills .section-index").textContent = s.label || "Toolkit";
+  document.getElementById("skills-heading").textContent = s.heading || "Skills &";
+  document.getElementById("skills-heading-accent").textContent = s.headingAccent || "technologies";
+
+  chipWrap.innerHTML = chips.map(c => `<span class="skill-chip">${esc(c)}</span>`).join("");
+
+  barWrap.innerHTML = bars.map((b, i) => {
+    const v = Math.max(0, Math.min(100, Number(b.value) || 0));
+    return `<div class="bar-row reveal" style="--d:${(i * 0.07).toFixed(2)}s">
+      <div class="bar-head">
+        <span class="bar-label">${esc(b.label)}</span>
+        <span class="bar-pct" data-target="${v}">0%</span>
+      </div>
+      <div class="bar-track"><span class="bar-fill" data-v="${v}"></span></div>
+    </div>`;
+  }).join("");
+}
+
+/* bars fill and the numbers count up the first time they're scrolled to */
+function initSkillBars(){
+  const section = document.getElementById("skills");
+  if(!section || section.style.display === "none") return;
+  const fills = section.querySelectorAll(".bar-fill");
+  const pcts = section.querySelectorAll(".bar-pct");
+  if(!fills.length) return;
+
+  const settle = () => {
+    fills.forEach(f => { f.style.transform = `scaleX(${(f.dataset.v || 0) / 100})`; });
+    pcts.forEach(p => { p.textContent = `${p.dataset.target}%`; });
+  };
+  if(reducedMotion()){ settle(); return; }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(!entry.isIntersecting) return;
+      fills.forEach((f, i) => {
+        f.style.transitionDelay = `${i * 0.08}s`;
+        f.style.transform = `scaleX(${(f.dataset.v || 0) / 100})`;
+      });
+      pcts.forEach((p, i) => {
+        const target = parseInt(p.dataset.target, 10) || 0;
+        const start = performance.now() + i * 80;
+        (function tick(now){
+          const t = Math.max(0, now - start);
+          const prog = Math.min(t / 900, 1);
+          const eased = 1 - Math.pow(1 - prog, 3);
+          p.textContent = `${Math.round(target * eased)}%`;
+          if(prog < 1) requestAnimationFrame(tick);
+        })(performance.now());
+      });
+      io.unobserve(entry.target);
+    });
+  }, { threshold: 0.25 });
+  io.observe(section);
+}
+
+function renderServices(){
+  const list = CONTENT.services || [];
+  if(!list.length){ hideSection("services"); return; }
+  const wrap = document.getElementById("service-grid");
+  wrap.innerHTML = list.map((s, i) => {
+    const points = (s.points || []).map(p => `<li>${esc(p)}</li>`).join("");
+    return `<article class="service reveal" style="--d:${(i * 0.07).toFixed(2)}s">
+      <span class="service-num">${String(i + 1).padStart(2, "0")}</span>
+      <h3>${esc(s.title)}</h3>
+      <p class="service-blurb">${esc(s.blurb || "")}</p>
+      ${points ? `<ul class="service-points">${points}</ul>` : ""}
+    </article>`;
+  }).join("");
+}
+
+function renderProcess(){
+  const list = CONTENT.process || [];
+  if(!list.length){ hideSection("process"); return; }
+  const wrap = document.getElementById("process-track");
+  wrap.innerHTML = list.map((p, i) => `
+    <article class="step reveal" style="--d:${(i * 0.09).toFixed(2)}s">
+      <span class="step-num">${String(i + 1).padStart(2, "0")}</span>
+      <h3>${esc(p.title)}</h3>
+      <p>${esc(p.body || "")}</p>
+    </article>`).join("");
+}
+
+function renderTestimonials(){
+  const list = CONTENT.testimonials || [];
+  if(!list.length){ hideSection("words"); return; }
+  const wrap = document.getElementById("quote-grid");
+  wrap.innerHTML = list.map((t, i) => `
+    <figure class="quote reveal" style="--d:${(i * 0.08).toFixed(2)}s">
+      <blockquote>${esc(t.quote)}</blockquote>
+      <figcaption>
+        <span class="quote-name">${esc(t.name || "")}</span>
+        ${t.role ? `<span class="quote-role">${esc(t.role)}</span>` : ""}
+      </figcaption>
+    </figure>`).join("");
+}
+
+/* ---------- NAV + SECTION NUMBERS ---------- */
+const NAV = [
+  { id: "work",     label: "Work" },
+  { id: "about",    label: "About" },
+  { id: "services", label: "Services" },
+  { id: "history",  label: "Experience" },
+  { id: "contact",  label: "Contact" },
+];
+
+function renderNav(){
+  const links = NAV.filter(n => {
+    const node = document.getElementById(n.id);
+    return node && node.style.display !== "none";
+  });
+  const html = links.map(n => `<a href="#${n.id}">${esc(n.label)}</a>`).join("");
+  const top = document.getElementById("toplinks");
+  const menu = document.getElementById("menu-links");
+  if(top) top.innerHTML = html;
+  if(menu) menu.innerHTML = html;
+}
+
+/* numbers the section labels in document order, skipping hidden ones, so
+   removing a section never leaves a gap like 01, 02, 04 */
+function numberSections(){
+  const labels = document.querySelectorAll(".section-index");
+  let n = 0;
+  labels.forEach(node => {
+    const host = node.closest("section, footer");
+    if(host && host.style.display === "none") return;
+    if(!node.dataset.base) node.dataset.base = node.textContent.trim();
+    n++;
+    node.textContent = `${String(n).padStart(2, "0")} — ${node.dataset.base}`;
+  });
+}
+
 /* ---------- CONTACT ---------- */
 function renderContact(){
   const email = document.getElementById("contact-email");
@@ -944,12 +1095,21 @@ document.addEventListener("DOMContentLoaded", () => {
   renderGrid();
   renderHistory();
   renderAbout();
+  renderSkills();
+  renderServices();
+  renderProcess();
+  renderTestimonials();
   renderContact();
   renderStats();
+  // nav and numbering run last: both depend on knowing which sections
+  // ended up hidden because content.js had nothing for them
+  renderNav();
+  numberSections();
   startTimecode();
   runLoader();
   initScrollReveal();
   initStatsCountUp();
+  initSkillBars();
   initCustomCursor();
   initMenu();
   initAlbumControls();

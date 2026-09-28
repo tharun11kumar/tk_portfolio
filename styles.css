@@ -685,6 +685,141 @@ html.is-loading{ overflow:hidden; }
 .stat-label{ margin-top:0.5rem; color:var(--text-dim); font-size:0.8rem; }
 
 /* ============================================================
+   SKILLS & TECHNOLOGIES
+   Statement type and a chip cloud on the left, proficiency rules
+   on the right.
+   ============================================================ */
+.skills{
+  display:grid; gap:2.6rem 3.5rem; grid-template-columns:1fr;
+  align-items:start;
+}
+@media(min-width:900px){
+  .skills{ grid-template-columns:minmax(0,0.85fr) minmax(0,1.15fr); gap:2rem 4rem; }
+}
+.skills-left .section-index{ margin-bottom:0.9rem; }
+.skills-heading{
+  font-size:clamp(2.4rem, 6.5vw, 4.4rem);
+  line-height:0.92; letter-spacing:-0.01em; margin:0 0 2rem;
+}
+.skills-heading span{ display:block; }
+.sk-plain{ color:var(--text); }
+.sk-grad{
+  background:linear-gradient(95deg, var(--accent) 0%, var(--accent-hot) 22%, var(--teal) 58%, var(--violet) 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+
+.skill-chips{ display:flex; flex-wrap:wrap; gap:0.55rem; }
+.skill-chip{
+  font-size:0.82rem; padding:0.5rem 0.95rem;
+  border:1px solid var(--line); border-radius:999px;
+  color:var(--text-dim); background:rgba(255,255,255,0.02);
+  transition:color .3s var(--ease), border-color .3s var(--ease), background .3s var(--ease);
+}
+.skill-chip:hover{ color:var(--text); border-color:var(--accent); background:rgba(228,87,46,0.08); }
+
+.skills-bars{ display:flex; flex-direction:column; }
+.bar-row{ padding:0.95rem 0 0.75rem; border-bottom:1px solid var(--line); }
+.bar-row:first-child{ padding-top:0; }
+.bar-head{ display:flex; align-items:baseline; justify-content:space-between; gap:1rem; margin-bottom:0.7rem; }
+.bar-label{ font-family:var(--display); font-weight:700; font-size:1.12rem; color:var(--text); }
+.bar-pct{ font-size:0.78rem; color:var(--text-mute); font-variant-numeric:tabular-nums; flex:none; }
+.bar-track{ position:relative; display:block; height:2px; background:var(--line); border-radius:2px; }
+.bar-fill{
+  position:absolute; inset:0; display:block; border-radius:2px;
+  transform:scaleX(0); transform-origin:left;
+  transition:transform 1.1s var(--ease);
+  background:var(--accent);
+}
+/* cycle the palette down the list so the rules don't read as one flat block */
+.bar-row:nth-child(3n+2) .bar-fill{ background:var(--teal); }
+.bar-row:nth-child(3n+3) .bar-fill{ background:var(--violet); }
+
+/* ============================================================
+   SERVICES
+   ============================================================ */
+.service-grid{
+  display:grid; gap:1rem;
+  grid-template-columns:repeat(auto-fit, minmax(255px, 1fr));
+}
+.service{
+  position:relative; padding:1.7rem 1.5rem 1.6rem;
+  border:1px solid var(--line); border-radius:18px;
+  background:rgba(255,255,255,0.02);
+  transition:border-color .4s var(--ease), transform .4s var(--ease), background .4s var(--ease);
+}
+.service:hover{ border-color:rgba(228,87,46,0.5); transform:translateY(-5px); background:rgba(228,87,46,0.04); }
+.service-num{
+  font-family:var(--body); font-size:0.7rem; letter-spacing:0.16em;
+  color:var(--text-mute); display:block; margin-bottom:0.9rem;
+}
+.service h3{ font-size:1.4rem; margin:0 0 0.5rem; }
+.service-blurb{ color:var(--text-dim); font-size:0.9rem; margin:0 0 1.1rem; }
+.service-points{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:0.45rem; }
+.service-points li{
+  position:relative; padding-left:1.1rem; font-size:0.84rem; color:var(--text-dim);
+}
+.service-points li::before{
+  content:""; position:absolute; left:0; top:0.55em;
+  width:5px; height:5px; border-radius:50%; background:var(--accent);
+}
+
+/* ============================================================
+   PROCESS
+   ============================================================ */
+.process-track{
+  display:grid; gap:1.6rem;
+  grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));
+}
+.step{ position:relative; padding-top:1.9rem; }
+/* the rule that ties the steps together, with a node at each one */
+.step::before{
+  content:""; position:absolute; left:0; right:-1.6rem; top:0.45rem;
+  height:1px; background:var(--line);
+}
+.step:last-child::before{ right:0; }
+.step::after{
+  content:""; position:absolute; left:0; top:0;
+  width:9px; height:9px; border-radius:50%; background:var(--accent);
+  box-shadow:0 0 0 4px rgba(228,87,46,0.14);
+}
+/* once the steps stack, the connector is a divider rather than a track
+   between columns, so it shouldn't run past the edge */
+@media(max-width:559px){
+  .step::before{ right:0; }
+}
+.step-num{
+  font-family:var(--body); font-size:0.7rem; letter-spacing:0.16em;
+  color:var(--text-mute); display:block; margin-bottom:0.5rem;
+}
+.step h3{ font-size:1.3rem; margin:0 0 0.45rem; }
+.step p{ color:var(--text-dim); font-size:0.88rem; margin:0; }
+
+/* ============================================================
+   TESTIMONIALS
+   ============================================================ */
+.quote-grid{
+  display:grid; gap:1rem;
+  grid-template-columns:repeat(auto-fit, minmax(290px, 1fr));
+}
+.quote{
+  margin:0; padding:1.8rem 1.6rem;
+  border:1px solid var(--line); border-radius:18px;
+  background:rgba(255,255,255,0.02);
+  display:flex; flex-direction:column; gap:1.2rem;
+}
+.quote blockquote{
+  margin:0; color:var(--text); font-size:1rem; line-height:1.6; position:relative;
+  padding-top:1.6rem;
+}
+.quote blockquote::before{
+  content:"\201C"; position:absolute; top:-0.5rem; left:-0.2rem;
+  font-family:var(--display); font-size:3.4rem; line-height:1; color:var(--accent); opacity:0.5;
+}
+.quote figcaption{ display:flex; flex-direction:column; gap:0.15rem; margin-top:auto; }
+.quote-name{ font-family:var(--display); font-weight:700; font-size:1.05rem; color:var(--text); }
+.quote-role{ font-size:0.78rem; color:var(--text-mute); }
+
+/* ============================================================
    HISTORY / TIMELINE
    ============================================================ */
 .timeline{ border-left:1px solid var(--line); margin-left:0.4rem; }
@@ -938,4 +1073,6 @@ html.is-loading{ overflow:hidden; }
   .album-main img.is-in{ transform:none; }
   .card-thumb .album-shot{ transition:none; }
   .album-arrow{ opacity:1; }
+  /* the skill bars still show their real length, they just don't sweep out */
+  .bar-fill{ transition:none; }
 }
