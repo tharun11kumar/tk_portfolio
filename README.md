@@ -14,7 +14,7 @@ pencil/edit icon), make your change, and click "Commit changes" at the
 bottom — Vercel redeploys automatically within seconds. You never need to
 touch `index.html`, `styles.css`, or `script.js` for normal updates.
 
-### 1. Adding an edited video (discrete upload)
+### 1. Adding an edited video (YouTube, Vimeo or Google Drive)
 Edits and films each get **one entry per project**. Add a block to the
 `work` array:
 ```js
@@ -24,17 +24,51 @@ Edits and films each get **one entry per project**. Add a block to the
   year: "2026",
   role: "Editor",
   description: "A 3-minute same-day edit cut to the couple's first-dance track.",
-  video: "https://www.youtube.com/embed/YOUR_VIDEO_ID",
+  video: "https://youtu.be/YOUR_VIDEO_ID",
   image: null,
   link: null,
 },
 ```
-To get the embed ID: open your YouTube video → Share → Embed, and copy the
-`VIDEO_ID` out of the `src="...youtube.com/embed/VIDEO_ID"` it gives you.
-Same process for a Vimeo link (`https://player.vimeo.com/video/VIDEO_ID`).
+**Just paste the normal share link** — you don't need to hunt for an embed
+URL any more. All of these work and get converted for you:
 
-### 2. Adding a film (same as edits — discrete)
+| Where the video lives | Paste this |
+|---|---|
+| YouTube | `https://youtu.be/ID` or `https://www.youtube.com/watch?v=ID` |
+| Vimeo | `https://vimeo.com/ID` |
+| Google Drive | `https://drive.google.com/file/d/ID/view?usp=sharing` |
+
+**For Google Drive, set the file's sharing to "Anyone with the link"** —
+otherwise visitors hit a permission wall instead of your video. Drive also
+doesn't hand out thumbnails, so set `image` to a cover frame if you want
+something better than the grain placeholder on the grid.
+
+### 2. Adding a film (same as edits)
 Identical to above, just set `category: "films"` instead.
+
+### 2b. Pulling a piece straight from Instagram
+If the work already lives on your Instagram, you don't need to re-upload it.
+Add `instagram` with the post or reel link and it plays inside your site —
+visitors never leave the page:
+```js
+{
+  category: "edits",
+  title: "Campus fest aftermovie",
+  year: "2026",
+  role: "Editor",
+  description: "Cut the same night, posted the next morning.",
+  instagram: "https://www.instagram.com/p/YOUR_POST_CODE/",
+  image: "assets/edits/fest-cover.jpg",   // optional but worth it — see below
+  link: null,
+},
+```
+Post links (`/p/...`) and reel links (`/reel/...`) both work.
+
+**One thing to know:** Instagram does not let other websites use its
+thumbnails without an API token, so a card with only an `instagram` link
+shows a branded Instagram placeholder on the grid. If you want a proper
+cover frame there, export one still from the video and point `image` at it.
+The embed itself is unaffected either way.
 
 ### 3. Adding photography — as an ALBUM, not one-by-one
 Photography works differently on purpose: **one entry = one whole
@@ -56,9 +90,16 @@ shoot/album**, holding every photo from that shoot in an `images` array
 },
 ```
 The work grid shows the **first photo as the cover** with a small
-"N photos" badge. Clicking it opens the whole set as a gallery visitors
-can click through or navigate with the arrow keys — nothing is shown as
-separate individual cards.
+"N photos" badge, and hovering the card riffles through the shoot. Clicking
+it opens the album as a **slideshow that plays itself** — each photo holds
+for about four seconds with a progress bar running underneath, then
+cross-fades to the next.
+
+Visitors can take over at any time: a pause button, arrows on either side of
+the frame, a thumbnail strip, left/right arrow keys, and swipe on a phone.
+Hovering the photo holds it so nothing slides away mid-look, and manual
+navigation restarts the timer rather than cutting a photo short. Nothing is
+ever shown as separate individual cards — one entry stays one album.
 
 **To upload the actual photo files:** in your GitHub repo, create a
 folder path like `assets/photos/marina-dawn/` (GitHub lets you create
@@ -88,12 +129,16 @@ Replace the `url` values with your real profile links (and the `email`
 with your real address). Add or remove `{ label, url }` lines for any
 other platform — each one shows up automatically in the footer.
 
-### 6. Editing the top badges and the numbers band
+### 6. Editing the production slate and the numbers band
 Near the top of `content.js`:
 ```js
 hero: {
-  status: "Open to freelance",              // gets a green dot
-  badges: ["EEE Student · VIT Chennai", "Chennai, India"],
+  slate: [
+    { label: "ROLE",   value: "Editor / DP / Director" },
+    { label: "STATUS", value: "Open for freelance" },
+    { label: "BASED",  value: "Chennai, India" },
+    { label: "REEL",   value: "No. 001" },
+  ],
   blurb: "One or two sentences under your name.",
 },
 stats: [
@@ -101,17 +146,41 @@ stats: [
   { value: "10+", label: "Projects shipped" },
 ],
 ```
-`badges` and `stats` can each have as many or as few entries as you want
-— the layout adjusts automatically. Numbers in `stats` count up
-automatically the first time a visitor scrolls to that section.
+The `slate` is the small glass strip above your name — it's styled like the
+info card on a film slate. Add, remove or rename rows freely; each one is
+just a `{ label, value }` pair. `slate` and `stats` can each have as many or
+as few entries as you want — the layout adjusts automatically. Numbers in
+`stats` count up the first time a visitor scrolls to them.
+
+### 7. Adding your portrait photo
+Upload your photo to the repo (e.g. `assets/portrait.jpg`) the same way you
+upload album photos, then point `about.portrait` at it:
+```js
+about: {
+  portrait: "assets/portrait.jpg",
+  caption: "Usually mid color-grade.",
+  ...
+}
+```
+Leave it `null` and the About section keeps its empty "PORTRAIT" frame. If
+the path is wrong the frame stays as-is rather than showing a broken image.
+
+### 8. Shortening the giant wordmark (optional)
+The landing screen sets your `name` in huge type, broken onto two lines. If
+your name is long and you'd rather it read as one short mark, set:
+```js
+wordmark: "TK",   // or "Tharun" — leave null to use your full name
+```
 
 ## Deploying to Vercel
 
 **Option A — no coding tools, all in the browser:**
 1. Create a free account at [github.com](https://github.com) if you don't have one.
-2. Create a new repository (e.g. `tk-portfolio`) and upload these files
-   (`index.html`, `styles.css`, `script.js`, `content.js`, this README) via
-   "Add file → Upload files" on the repo page.
+2. Create a new repository (e.g. `tk-portfolio`) and upload **everything in
+   this folder** via "Add file → Upload files" on the repo page. Drag the
+   `assets` and `scripts` folders in as well as the loose files — the site
+   needs `assets/` to run. (GitHub's uploader accepts dragged folders and
+   keeps the structure.)
 3. Go to [vercel.com](https://vercel.com), sign up/log in with GitHub.
 4. Click **Add New → Project**, select your `tk-portfolio` repo, and click
    **Deploy**. No settings need to change — Vercel serves static files
@@ -136,10 +205,40 @@ In the Vercel dashboard → your project → **Settings → Domains**, add your
 own domain (e.g. `tharunkumar.com`) and follow the DNS instructions Vercel
 gives you.
 
+## What's in the folder
+
+You only ever edit `content.js`. For reference, everything else is:
+
+| Path | What it is |
+|---|---|
+| `index.html` `styles.css` `script.js` | The site itself |
+| `content.js` | **Your content — the only file you edit** |
+| `assets/vendor/` | GSAP + ScrollTrigger, the animation library. Bundled locally so the site has no CDN dependency and works offline |
+| `assets/art/` | The nine abstract cards in the hero arc |
+| `scripts/make-art.js` | Regenerates those cards (`node scripts/make-art.js`). You never need to run this — it's only there so the artwork can be re-tinted if you change the palette |
+
+Put your own media anywhere you like under `assets/` — e.g.
+`assets/photos/<album>/`, `assets/edits/`, `assets/portrait.jpg`.
+
 ## Notes
+- **The arc of cards behind your name builds itself from your work.** It
+  pulls album covers, custom thumbnails and YouTube stills straight out of
+  the `work` array — so the landing screen fills in with real frames as you
+  add projects. Anything without an image shows a coloured gradient card
+  instead, so the arc is never half-empty while you're still filling the
+  site in. You don't configure it; just add work.
 - The little running timecode in the top-right is cosmetic (a nod to
   editing timelines) — it turns itself off automatically for visitors
   who have "reduce motion" enabled on their device.
 - Placeholder thumbnails use a grain-textured gradient so the site never
   looks broken before you add real images — swap them in whenever you're
   ready, no rush.
+- On phones the nav collapses into a hamburger menu; on desktop the links
+  sit in the top bar. Nothing to configure there either.
+- **Everything respects "reduce motion".** If a visitor has that switched on
+  at the OS level, the hero animation, the ticker, the card float and the
+  slideshow autoplay all stop — the content is still completely there, it
+  just holds still. Worth knowing before you assume something is broken.
+- The animation runs through GSAP. If it ever fails to load, the site falls
+  back to a CSS-only intro and everything still works — nothing depends on
+  the library being there.

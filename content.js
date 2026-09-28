@@ -8,16 +8,31 @@
    the actual layout/design — everything here is just your content.
 
    EDITS & FILMS (one item per project):
-   - "video": a YouTube/Vimeo EMBED url, e.g. https://www.youtube.com/embed/VIDEO_ID
+   - "video": paste the normal share link, not an embed link. YouTube,
+     Vimeo and Google Drive all work and are converted automatically:
+       https://youtu.be/VIDEO_ID
+       https://www.youtube.com/watch?v=VIDEO_ID
+       https://vimeo.com/VIDEO_ID
+       https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+     For a Drive video, set its sharing to "Anyone with the link" or
+     visitors will just see a permission wall.
    - "image": a single cover image path, e.g. "assets/edits/recap-cover.jpg"
    - Leave both null to keep the generated placeholder.
+
+   INSTAGRAM (works in any category):
+   - "instagram": the post/reel link, e.g. https://www.instagram.com/p/CODE/
+     The post plays inside the site — visitors never leave the page.
+   - Instagram does not hand out thumbnails to other sites, so the grid
+     card shows a branded placeholder unless you also set "image" to a
+     cover of your own. Setting "image" is worth the extra minute.
 
    PHOTOGRAPHY (one item per ALBUM, not per photo):
    - Use "images": [ "assets/photos/goa-trip/1.jpg", "assets/photos/goa-trip/2.jpg", ... ]
    - List every photo in that shoot/album inside the array. The grid
-     will show the first photo as the cover with a photo count badge,
-     and clicking it opens the whole album as a gallery visitors can
-     click or arrow-key through.
+     shows the first photo as the cover with a photo count badge, and
+     clicking it opens the whole album as a slideshow that plays itself
+     — with a progress bar, prev/next, thumbnails, swipe and arrow keys.
+     Hovering the card previews the album too.
    - Do NOT use "image" (singular) for photography — use "images" (plural).
    ============================================================ */
 
@@ -25,6 +40,11 @@ const CONTENT = {
 
   name: "Tharun Kumar",
   role: "Editor. Photographer. Filmmaker.",
+
+  // Optional. The giant wordmark on the landing screen normally uses "name"
+  // above, broken onto two lines. Set this to override it with something
+  // shorter/punchier (e.g. "TK" or "Tharun") if the full name feels too long.
+  wordmark: null,
 
   // Shown at the very top of the landing page.
   // "status" gets a small green dot (use it for availability, e.g. "Open to freelance").
@@ -103,6 +123,20 @@ const CONTENT = {
       video: null,
       link: null,
     },
+    {
+      // Example of pulling a piece straight from Instagram. Swap the URL for
+      // one of your own posts or reels and it plays inside the site.
+      // Add "image" too if you want a proper cover on the grid card.
+      category: "edits",
+      title: "Pull a post from Instagram",
+      year: "2026",
+      role: "Editor",
+      description: "Paste any Instagram post or reel link into 'instagram' and it embeds here, playable without leaving the site. Delete this block once you've added a real one.",
+      instagram: "https://www.instagram.com/p/DAaBbCcDdEe/",
+      image: null,
+      video: null,
+      link: null,
+    },
   ],
 
   // Career / experience timeline. Sorted top to bottom as you list them.
@@ -125,6 +159,9 @@ const CONTENT = {
   ],
 
   about: {
+    // Your photo. Drop the file in the repo (e.g. assets/portrait.jpg) and put
+    // that path here. Leave it null to keep the empty "PORTRAIT" placeholder.
+    portrait: null,
     // shown as a small floating tag overlapping the portrait photo
     caption: "Usually mid color-grade.",
     paragraphs: [
