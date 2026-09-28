@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800">
+<defs>
+<filter id="g"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
+<linearGradient id="bg" x1="0" y1="0" x2="0.6" y2="1">
+<stop offset="0" stop-color="#c9a227" stop-opacity="0.9"/>
+<stop offset="0.55" stop-color="#6a5413" stop-opacity="0.75"/>
+<stop offset="1" stop-color="#08090b"/>
+</linearGradient>
+</defs>
+<rect width="600" height="800" fill="#08090b"/>
+<rect width="600" height="800" fill="url(#bg)"/><rect x="0" y="0" width="600" height="20.550505802966654" fill="#f0ede6" opacity="0.07325507384724915"/><rect x="0" y="26.550505802966654" width="600" height="54.702756088227034" fill="#c9a227" opacity="0.10230524657294154"/><rect x="0" y="87.25326189119369" width="600" height="36.329626026563346" fill="#c9a227" opacity="0.10880873176269235"/><rect x="0" y="129.58288791775703" width="600" height="40.43526700697839" fill="#c9a227" opacity="0.19406273286789658"/><rect x="0" y="176.01815492473543" width="600" height="45.29215902555734" fill="#f0ede6" opacity="0.09704491534270346"/><rect x="0" y="227.31031395029277" width="600" height="50.4773224145174" fill="#f0ede6" opacity="0.13642482260242106"/><rect x="0" y="283.78763636481017" width="600" height="62.51676683779806" fill="#c9a227" opacity="0.11089595734141766"/><rect x="0" y="352.3044032026082" width="600" height="52.18219534493983" fill="#f0ede6" opacity="0.21831532172858717"/><rect x="0" y="410.48659854754806" width="600" height="57.434161328710616" fill="#f0ede6" opacity="0.21487405692227188"/><rect x="0" y="473.92075987625867" width="600" height="36.04364173486829" fill="#f0ede6" opacity="0.12164113899692894"/><rect x="0" y="515.964401611127" width="600" height="59.230737308971584" fill="#f0ede6" opacity="0.13034189428202808"/><rect x="0" y="581.1951389200985" width="600" height="66.63801620714366" fill="#c9a227" opacity="0.11438730243593453"/><rect x="0" y="653.8331551272422" width="600" height="61.540230554528534" fill="#f0ede6" opacity="0.2049122735951096"/><rect x="0" y="721.3733856817707" width="600" height="24.825848303735256" fill="#f0ede6" opacity="0.12924969555810095"/><rect x="0" y="752.199233985506" width="600" height="69.01373276021332" fill="#f0ede6" opacity="0.10353050521574914"/>
+<rect width="600" height="800" filter="url(#g)" opacity="0.16"/>
+</svg>
