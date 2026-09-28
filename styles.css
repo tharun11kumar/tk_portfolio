@@ -461,8 +461,12 @@ html.is-loading{ overflow:hidden; }
   border-top:1px solid var(--line); border-bottom:1px solid var(--line);
   padding:0.9rem 0; background:rgba(255,255,255,0.015);
 }
+/* No `gap` on the track, deliberately. With flex gap, half the track's width
+   is NOT the same distance as half its children, so translateX(-50%) lands
+   half a gap out and the loop visibly jumps. Carrying the spacing inside each
+   item instead makes the two halves exactly identical in width. */
 .ticker-track{
-  display:flex; align-items:center; gap:2.6rem;
+  display:flex; align-items:center;
   width:max-content;
   animation:tickerRun 24s linear infinite;
 }
@@ -474,6 +478,7 @@ html.is-loading{ overflow:hidden; }
   text-transform:uppercase; letter-spacing:0.02em;
   color:var(--text-mute); white-space:nowrap; flex:none;
   display:flex; align-items:center; gap:2.6rem;
+  padding-right:2.6rem;
 }
 .tick::after{
   content:""; width:7px; height:7px; border-radius:50%;

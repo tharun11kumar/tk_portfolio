@@ -136,16 +136,48 @@ function renderGate(){
   });
 }
 
-/* ---------- TICKER ---------- */
+/* ---------- TICKER ----------
+   The strip loops by sliding to -50%, which only reads as continuous if the
+   track is exactly two identical halves AND each half is at least as wide as
+   the screen. Three short words don't come close on a wide monitor, so the
+   run gets repeated as many times as it takes to cover the viewport first. */
 function renderTicker(){
   const track = document.getElementById("ticker");
   if(!track) return;
   const words = String(CONTENT.role || "")
     .split(/[.·•]/).map(s => s.trim()).filter(Boolean);
   if(!words.length) return;
+
   const run = words.map(w => `<span class="tick">${esc(w)}</span>`).join("");
-  // twice so the loop can reset at -50% without a visible seam
-  track.innerHTML = run + run;
+
+  if(reducedMotion()){
+    track.innerHTML = run;   // nothing moves, so one pass is all that's needed
+    return;
+  }
+
+  // measure one run, then work out how many it takes to span the screen
+  track.innerHTML = run;
+  const runWidth = track.getBoundingClientRect().width;
+  if(!runWidth) return;
+  const reps = Math.max(1, Math.ceil(window.innerWidth / runWidth));
+  const half = run.repeat(reps);
+  track.innerHTML = half + half;
+
+  // more repeats means a wider track, so hold the speed steady in px/sec
+  // rather than letting a wide screen scroll faster than a narrow one
+  const halfWidth = runWidth * reps;
+  track.style.animationDuration = `${Math.max(14, halfWidth / 55).toFixed(1)}s`;
+}
+
+function initTicker(){
+  renderTicker();
+  // a webfont landing after the first measurement changes the run width
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(renderTicker);
+  let t = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(t);
+    t = setTimeout(renderTicker, 200);
+  });
 }
 
 /* ---------- HERO COLLAGE ----------
@@ -906,7 +938,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.documentElement.classList.add("is-loading");
   renderHeader();
   renderGate();
-  renderTicker();
+  initTicker();
   buildCollage();
   renderTabs();
   renderGrid();
