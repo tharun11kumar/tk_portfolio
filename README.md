@@ -104,6 +104,16 @@ Hovering the photo holds it so nothing slides away mid-look, and manual
 navigation restarts the timer rather than cutting a photo short. Nothing is
 ever shown as separate individual cards — one entry stays one album.
 
+**Giving a photo its own title:** write that photo as `{ src, caption }`
+instead of just its path. The caption shows under the photo in the
+slideshow; photos without one show no caption.
+```js
+images: [
+  { src: "assets/photos/black-and-white/curves-beyond-lightroom.jpg", caption: "Curves beyond Lightroom" },
+  "assets/photos/black-and-white/2.jpg",   // no caption
+],
+```
+
 **To upload the actual photo files:** in your GitHub repo, create a
 folder path like `assets/photos/marina-dawn/` (GitHub lets you create
 folders by naming a file `assets/photos/marina-dawn/1.jpg` during

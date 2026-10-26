@@ -68,7 +68,7 @@ const CONTENT = {
     // subjects on dark grounds work best. Leave the list empty to use every
     // photo from your albums below.
     photos: [
-      { src: "assets/photos/singles/curves-beyond-lightroom.jpg", title: "Curves beyond Lightroom" },
+      { src: "assets/photos/black-and-white/curves-beyond-lightroom.jpg", title: "Curves beyond Lightroom" },
       { src: "assets/photos/srmmun-25/03.jpg", title: "SRMMUN ’25" },
       { src: "assets/photos/stella-mun-26/10.jpg", title: "Stella MUN ’26" },
       { src: "assets/photos/sigma-105mm/05.jpg", title: "Through a Sigma 105mm" },
@@ -231,13 +231,14 @@ const CONTENT = {
     },
     {
       category: "photography",
-      title: "Singles",
+      title: "Black & White",
       year: "2026",
       role: "Photographer",
-      description: "Two frames that stand alone: a silhouette at the end of a corridor (“curves beyond Lightroom”), and a Coke bottle on an iPhone 14 Plus at 26mm.",
+      description: "Frames in black and white, each with its own title.",
+      // A photo can be just its path, or { src, caption } to give it a title
+      // that shows under it in the slideshow.
       images: [
-        "assets/photos/singles/curves-beyond-lightroom.jpg",
-        "assets/photos/singles/coke-iphone-26mm.jpg",
+        { src: "assets/photos/black-and-white/curves-beyond-lightroom.jpg", caption: "Curves beyond Lightroom" },
       ],
       link: "https://www.instagram.com/framesoftk/",
     },

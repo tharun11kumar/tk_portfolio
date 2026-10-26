@@ -38,6 +38,17 @@ function sentenceCase(str){
   return s;
 }
 
+/* an album photo can be a plain path or { src, caption }; keep the paths in
+   "images" (everything else reads those) and the titles alongside in "captions" */
+function normalizeAlbums(){
+  (CONTENT.work || []).forEach(w => {
+    if(!Array.isArray(w.images)) return;
+    const shots = w.images.filter(p => p && (typeof p === "string" || p.src));
+    w.captions = shots.map(p => (typeof p === "object" && p.caption) || "");
+    w.images = shots.map(p => typeof p === "object" ? p.src : p);
+  });
+}
+
 /* ============================================================
    LINK HANDLING
    You paste normal share links into content.js; these turn them
@@ -520,7 +531,7 @@ function openModal(item){
 
   if(item.images && item.images.length){
     albumWrap.style.display = "block";
-    startAlbum(item.images);
+    startAlbum(item.images, item.captions);
   } else if(igSrc){
     embedWrap.style.display = "block";
     document.getElementById("ig-frame").innerHTML =
@@ -581,8 +592,9 @@ function trapFocus(e){
 }
 
 /* ---------- ALBUM SLIDESHOW ---------- */
-function startAlbum(images){
+function startAlbum(images, captions){
   album.images = images;
+  album.captions = captions || [];
   album.index = 0;
   album.paused = false;
   renderAlbumFrame();
@@ -636,7 +648,9 @@ function renderAlbumFrame(){
   const src = album.images[album.index];
   const img = el("img");
   img.src = src;
-  img.alt = `Photo ${album.index + 1} of ${album.images.length}`;
+  const cap = (album.captions || [])[album.index] || "";
+  img.alt = cap || `Photo ${album.index + 1} of ${album.images.length}`;
+  document.getElementById("album-caption").textContent = cap;
   // crossfade: the outgoing frame fades while the new one fades in on top
   const prev = main.querySelector("img:not(.is-out)");
   main.appendChild(img);
@@ -890,6 +904,7 @@ function onResize(){
 /* ---------- INIT ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   document.title = `${CONTENT.name} — ${CONTENT.role}`;
+  normalizeAlbums();
   renderHero();
   renderTabs();
   renderWork();
