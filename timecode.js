@@ -6,6 +6,7 @@
      down the page you are.
    - Scrolling fast-forwards (or rewinds) the timecode, and the box
      sways behind the scroll on a spring, like a camera on a rig.
+   - Two small bars show the microphone level, once sound is on.
    - It appears once the intro has finished.
    You should not need to edit this file.
    ============================================================ */
@@ -19,7 +20,7 @@
     box.className = "tcb";
     box.setAttribute("aria-hidden", "true");
     box.innerHTML = `
-      <div class="tcb-row"><span class="tcb-rec"><b></b>REC</span><span class="tcb-dir"></span></div>
+      <div class="tcb-row"><span class="tcb-rec"><b></b>REC</span><span class="tcb-row-right"><span class="tcb-dir"></span><span class="tcb-meter"><i></i><i></i></span></span></div>
       <div class="tcb-time">00:00:00:00</div>
       <div class="tcb-scene"></div>
       <div class="tcb-track"><span></span></div>`;
@@ -28,6 +29,7 @@
     const scene = box.querySelector(".tcb-scene");
     const dir = box.querySelector(".tcb-dir");
     const bar = box.querySelector(".tcb-track > span");
+    const meters = box.querySelectorAll(".tcb-meter i");
 
     const sections = SCENES.map(([id, name], i) => ({ el: document.getElementById(id), name, n: i + 1 })).filter(s => s.el);
 
@@ -57,6 +59,11 @@
       for(const sc of sections) if(sc.el.getBoundingClientRect().top <= mid) cur = sc;
       const label = `SC ${String(cur.n).padStart(2, "0")} · ${cur.name}`;
       if(scene.textContent !== label) scene.textContent = label;
+
+      // the audio meter, from the microphone once the visitor allows it
+      const snd = window.TKSound || { level: 0, bass: 0 };
+      meters[0].style.setProperty("--m", Math.min(1, snd.level * 1.3).toFixed(3));
+      meters[1].style.setProperty("--m", Math.min(1, (snd.level * 0.8 + snd.bass * 0.5) * 1.2).toFixed(3));
 
       const max = document.documentElement.scrollHeight - window.innerHeight;
       bar.style.transform = `scaleX(${max > 0 ? (y / max).toFixed(4) : 0})`;
