@@ -1,8 +1,9 @@
 # Tharun Kumar — Portfolio
 
-A dark, cinematic single-page portfolio. Landing screen asks visitors what
-kind of work they want to see (Edits / Photography / Films), then shows
-filtered work, a work-history timeline, and an about section.
+A single-page portfolio built like a title card: your name set huge across
+the first screen, then your work as a list of big names that pass through a
+held frame (each name shows its picture as it crosses), an about section,
+your credits on a yellow field, and your email as the closing line.
 
 No build step — plain HTML/CSS/JS. That means **anyone can edit it in a
 text box on GitHub** and Vercel redeploys automatically.
@@ -41,7 +42,7 @@ URL any more. All of these work and get converted for you:
 **For Google Drive, set the file's sharing to "Anyone with the link"** —
 otherwise visitors hit a permission wall instead of your video. Drive also
 doesn't hand out thumbnails, so set `image` to a cover frame if you want
-something better than the grain placeholder on the grid.
+something better than the drawn placeholder in the work frame.
 
 ### 2. Adding a film (same as edits)
 Identical to above, just set `category: "films"` instead.
@@ -66,7 +67,7 @@ Post links (`/p/...`) and reel links (`/reel/...`) both work.
 
 **One thing to know:** Instagram does not let other websites use its
 thumbnails without an API token, so a card with only an `instagram` link
-shows a branded Instagram placeholder on the grid. If you want a proper
+shows a drawn placeholder in the work frame. If you want a proper
 cover frame there, export one still from the video and point `image` at it.
 The embed itself is unaffected either way.
 
@@ -89,8 +90,8 @@ shoot/album**, holding every photo from that shoot in an `images` array
   link: null,
 },
 ```
-The work grid shows the **first photo as the cover** with a small
-"N photos" badge, and hovering the card riffles through the shoot. Clicking
+The work list uses the **first photo as the cover** in the frame, and says
+how many photos the album holds. Clicking
 it opens the album as a **slideshow that plays itself** — each photo holds
 for about four seconds with a progress bar running underneath, then
 cross-fades to the next.
@@ -146,8 +147,9 @@ stats: [
   { value: "10+", label: "Projects shipped" },
 ],
 ```
-The `slate` is the small glass strip above your name — it's styled like the
-info card on a film slate. Add, remove or rename rows freely; each one is
+The `slate` is the short list of facts beside your name on the first
+screen (a "Status" row gets a small green dot, and "Status" and "Based"
+also appear at the bottom of the contact section). Add, remove or rename rows freely; each one is
 just a `{ label, value }` pair. `slate` and `stats` can each have as many or
 as few entries as you want — the layout adjusts automatically. Numbers in
 `stats` count up the first time a visitor scrolls to them.
@@ -213,32 +215,29 @@ You only ever edit `content.js`. For reference, everything else is:
 |---|---|
 | `index.html` `styles.css` `script.js` | The site itself |
 | `content.js` | **Your content — the only file you edit** |
-| `assets/vendor/` | GSAP + ScrollTrigger, the animation library. Bundled locally so the site has no CDN dependency and works offline |
-| `assets/art/` | The nine abstract cards in the hero arc |
-| `scripts/make-art.js` | Regenerates those cards (`node scripts/make-art.js`). You never need to run this — it's only there so the artwork can be re-tinted if you change the palette |
 
 Put your own media anywhere you like under `assets/` — e.g.
 `assets/photos/<album>/`, `assets/edits/`, `assets/portrait.jpg`.
 
 ## Notes
-- **The arc of cards behind your name builds itself from your work.** It
-  pulls album covers, custom thumbnails and YouTube stills straight out of
-  the `work` array — so the landing screen fills in with real frames as you
-  add projects. Anything without an image shows a coloured gradient card
-  instead, so the arc is never half-empty while you're still filling the
-  site in. You don't configure it; just add work.
-- The little running timecode in the top-right is cosmetic (a nod to
-  editing timelines) — it turns itself off automatically for visitors
-  who have "reduce motion" enabled on their device.
-- Placeholder thumbnails use a grain-textured gradient so the site never
-  looks broken before you add real images — swap them in whenever you're
-  ready, no rush.
-- On phones the nav collapses into a hamburger menu; on desktop the links
-  sit in the top bar. Nothing to configure there either.
-- **Everything respects "reduce motion".** If a visitor has that switched on
-  at the OS level, the hero animation, the ticker, the card float and the
-  slideshow autoplay all stop — the content is still completely there, it
-  just holds still. Worth knowing before you assume something is broken.
-- The animation runs through GSAP. If it ever fails to load, the site falls
-  back to a CSS-only intro and everything still works — nothing depends on
-  the library being there.
+- **The frame on the first screen builds itself from your work.** It cycles
+  through album covers, custom `image` covers and YouTube stills from the
+  `work` array, so the landing screen fills in with real frames as you add
+  projects. You don't configure it; just add work.
+- **Until a piece has a real still, it gets a drawn cover** in the site's
+  colours: a timeline for edits, a sun-and-horizon view for photography, a
+  letterboxed shot for films. Each title always gets the same drawing. Add
+  an `image` (or `images` for an album) and the drawing is replaced.
+- Your name, the "Credits" word and your email are sized automatically to
+  fill the width, so a longer name or email still fits. Set `wordmark` if
+  you'd rather the first screen show something shorter.
+- The little running timecode under the frame is cosmetic (a nod to
+  editing timelines). It turns itself off for visitors who have "reduce
+  motion" enabled on their device.
+- **Everything respects "reduce motion".** With it switched on, the name
+  doesn't rise in, sections don't slide, the frame doesn't cycle and the
+  album slideshow doesn't autoplay. The content is all still there.
+- No animation library: everything runs on plain CSS and a little
+  JavaScript, so there is nothing extra to load or break.
+- Fonts: Anton (the big condensed capitals) and Work Sans (everything
+  else), loaded from Google Fonts.

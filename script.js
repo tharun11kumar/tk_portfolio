@@ -4,18 +4,9 @@
    edit content.js instead.
    ============================================================ */
 
-const ACCENT_BY_CATEGORY = {
-  edits: "var(--accent)",
-  photography: "var(--teal)",
-  films: "var(--violet)",
-};
+window.__tkReady = true;
 
-/* abstract cards that fill the hero arc until real work fills it instead.
-   Regenerate them with `node scripts/make-art.js` if you change the palette. */
-const ART = Array.from({ length: 9 }, (_, i) =>
-  `assets/art/${String(i + 1).padStart(2, "0")}.svg`);
-
-let activeCategory = CONTENT.categories[0]?.id || null;
+let activeCategory = "all";
 
 function el(tag, className, html){
   const e = document.createElement(tag);
@@ -34,6 +25,17 @@ function esc(str){
 
 function reducedMotion(){
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function isNarrow(){
+  return window.matchMedia("(max-width: 760px)").matches;
+}
+
+/* "ROLE" -> "Role", so labels typed in capitals still read as sentence case */
+function sentenceCase(str){
+  const s = String(str || "").trim();
+  if(s && s === s.toUpperCase()) return s.charAt(0) + s.slice(1).toLowerCase();
+  return s;
 }
 
 /* ============================================================
@@ -76,259 +78,314 @@ function instagramEmbed(url){
   return code ? `https://www.instagram.com/p/${code}/embed` : null;
 }
 
-/* a thumbnail we can show on the grid card without an API key.
-   YouTube hands these out freely; Drive and Instagram do not. */
-function autoThumb(item){
+/* the best still we have for a piece of work, or null.
+   YouTube hands out thumbnails freely; Drive and Instagram do not. */
+function coverFor(item){
+  if(item.images && item.images.length && item.images[0]) return item.images[0];
+  if(item.image) return item.image;
   const yt = getYouTubeId(item.video);
   if(yt) return `https://img.youtube.com/vi/${yt}/hqdefault.jpg`;
   return null;
 }
 
-/* ---------- GATE ---------- */
-function renderGateName(){
-  const h1 = document.getElementById("gate-name");
+function labelFor(catId){
+  const c = CONTENT.categories.find(c => c.id === catId);
+  return c ? c.label : catId;
+}
+
+/* ============================================================
+   DRAWN COVERS
+   Until a piece has a real still, it gets a flat drawing of its
+   own kind of work: a timeline for edits, a framed view for
+   photography, a letterboxed shot for films. The drawing is seeded
+   by the title, so each piece always gets the same one.
+   ============================================================ */
+function seeded(str){
+  let h = 2166136261;
+  for(const ch of String(str)) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  return () => {
+    h = Math.imul(h ^ (h >>> 15), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return ((h ^= h >>> 16) >>> 0) / 4294967296;
+  };
+}
+
+function drawCover(item, w, h){
+  const r = seeded(item.title + item.category);
+  const INK = "#0d2a1c", SOFT = "#3d5a4b", BG = "#f7f7f7", SURF = "#ebebeb", ACC = "#f6e016";
+  let body = "";
+
+  if(item.category === "photography"){
+    const sunX = w * (0.3 + r() * 0.4), sunY = h * (0.3 + r() * 0.15), sunR = w * (0.14 + r() * 0.06);
+    const hz = h * (0.58 + r() * 0.08);
+    body += `<rect width="${w}" height="${h}" fill="${SURF}"/>`;
+    body += `<circle cx="${sunX}" cy="${sunY}" r="${sunR}" fill="${ACC}"/>`;
+    let hills = `M0 ${hz}`;
+    for(let x = 0; x <= w; x += w / 6) hills += ` L${x} ${hz - r() * h * 0.08}`;
+    body += `<path d="${hills} L${w} ${h} L0 ${h}Z" fill="${SOFT}"/>`;
+    body += `<rect y="${hz + h * 0.1}" width="${w}" height="${h}" fill="${INK}"/>`;
+  } else if(item.category === "films"){
+    const bar = h * 0.17;
+    const hz = h * (0.55 + r() * 0.1);
+    body += `<rect width="${w}" height="${h}" fill="${SURF}"/>`;
+    body += `<circle cx="${w * (0.2 + r() * 0.6)}" cy="${hz}" r="${w * 0.16}" fill="${ACC}"/>`;
+    body += `<rect y="${hz}" width="${w}" height="${h}" fill="${SOFT}"/>`;
+    const fx = w * (0.25 + r() * 0.5);
+    body += `<rect x="${fx}" y="${hz - h * 0.16}" width="${w * 0.035}" height="${h * 0.16}" fill="${INK}"/>`;
+    body += `<circle cx="${fx + w * 0.0175}" cy="${hz - h * 0.18}" r="${w * 0.028}" fill="${INK}"/>`;
+    body += `<rect width="${w}" height="${bar}" fill="${INK}"/><rect y="${h - bar}" width="${w}" height="${bar}" fill="${INK}"/>`;
+  } else {
+    // an edit timeline: clips on stacked tracks, a waveform, the playhead
+    body += `<rect width="${w}" height="${h}" fill="${ACC}"/>`;
+    const tracks = 4, th = h * 0.065, top = h * 0.3;
+    for(let t = 0; t < tracks; t++){
+      let x = -r() * 40;
+      const y = top + t * (th + h * 0.025);
+      while(x < w){
+        const cw = 26 + r() * w * 0.32;
+        if(r() > 0.18){
+          const fill = t < 2 ? (r() > 0.4 ? INK : SOFT) : (r() > 0.5 ? SOFT : BG);
+          body += `<rect x="${x}" y="${y}" width="${cw}" height="${th}" fill="${fill}"/>`;
+        }
+        x += cw + 5;
+      }
+    }
+    const wy = top + tracks * (th + h * 0.025) + h * 0.06, bars = 34, bw = w / bars;
+    for(let b = 0; b < bars; b++){
+      const bh = (0.2 + r() * 0.8) * h * 0.12;
+      body += `<rect x="${b * bw + bw * 0.2}" y="${wy + (h * 0.12 - bh) / 2}" width="${bw * 0.6}" height="${bh}" fill="${SOFT}"/>`;
+    }
+    const px = w * (0.35 + r() * 0.3);
+    body += `<rect x="${px}" y="${top - h * 0.06}" width="4" height="${h * 0.55}" fill="${INK}"/>`;
+    body += `<path d="M${px - 10} ${top - h * 0.06}h24l-12 14z" fill="${INK}"/>`;
+  }
+  const wrap = el("div", "drawn");
+  wrap.innerHTML = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${body}</svg>`;
+  return wrap;
+}
+
+/* a real still if one loads, otherwise the drawn cover.
+   A wrong image path leaves the drawing rather than a broken icon. */
+function pictureFor(item, w, h, alt){
+  const drawn = drawCover(item, w, h);
+  const src = coverFor(item);
+  if(!src) return drawn;
+  const img = new Image();
+  img.alt = alt || "";
+  img.decoding = "async";
+  img.addEventListener("load", () => {
+    img.className = drawn.className;
+    drawn.replaceWith(img);
+  });
+  img.src = src;
+  return drawn;
+}
+
+/* ============================================================
+   FIT TEXT
+   The name, the email and the credits word are set to fill their
+   width exactly, whatever the words are.
+   ============================================================ */
+function fitLines(container, lines, maxPx){
+  const avail = container.clientWidth;
+  if(!avail) return;
+  container.style.fontSize = "100px";
+  const widest = Math.max(...lines.map(l => l.getBoundingClientRect().width));
+  if(!widest) return;
+  const size = Math.min((100 * avail) / widest * 0.995, maxPx || Infinity);
+  container.style.fontSize = `${size}px`;
+}
+
+/* ---------- HERO ---------- */
+function renderName(){
+  const h1 = document.getElementById("name");
   const custom = (CONTENT.wordmark || "").trim();
   const raw = custom || (CONTENT.name || "").trim();
   const parts = raw.split(/\s+/);
-  let lines;
-  if(!custom && parts.length > 1){
-    const last = parts.pop();
-    lines = [parts.join(" "), last];
-  } else {
-    lines = [raw];
-  }
-  // each line gets a clipping wrapper so the reveal can slide up out of it
-  h1.innerHTML = lines.map((line, i) => {
-    const mark = i === lines.length - 1 ? `<sup class="wordmark-r">®</sup>` : "";
-    return `<span class="wm-line"><span class="wm-inner">${esc(line)}${mark}</span></span>`;
-  }).join("") + `<span class="wm-sweep" aria-hidden="true"></span>`;
+  const lines = isNarrow() && parts.length > 1
+    ? [parts.slice(0, -1).join(" "), parts[parts.length - 1]]
+    : [raw];
+  h1.setAttribute("aria-label", `${CONTENT.name}, ${CONTENT.role}`);
+  h1.innerHTML = lines.map(l =>
+    `<span class="name-line" aria-hidden="true"><span class="name-inner">${esc(l)}</span></span>`).join("");
+}
+
+function fitName(){
+  const h1 = document.getElementById("name");
+  const inners = [...h1.querySelectorAll(".name-inner")];
+  // a short wordmark like "TK" shouldn't swallow the whole screen
+  fitLines(h1, inners, window.innerHeight * (isNarrow() ? 0.3 : 0.32));
 }
 
 function renderSlate(){
   const wrap = document.getElementById("slate");
   const rows = (CONTENT.hero && CONTENT.hero.slate) || [];
   if(!rows.length){ wrap.style.display = "none"; return; }
-  wrap.innerHTML = rows.map(r =>
-    `<span class="slate-cell"><span class="slate-label">${esc(r.label)}</span><span class="slate-value">${esc(r.value)}</span></span>`
-  ).join("");
+  wrap.innerHTML = rows.map(r => {
+    const isStatus = /status/i.test(r.label);
+    const dot = isStatus ? `<span class="status-dot" aria-hidden="true"></span>` : "";
+    return `<div><dt>${esc(sentenceCase(r.label))}</dt><dd>${dot}${esc(r.value)}</dd></div>`;
+  }).join("");
 }
 
-function renderGate(){
-  renderGateName();
+let heroTimer = null;
+function renderHeroPictures(){
+  const wrap = document.getElementById("hero-pictures");
+  const caption = document.getElementById("hero-caption-title");
+  const items = (CONTENT.work || []).slice(0, 6);
+  wrap.innerHTML = "";
+  if(!items.length) return;
+  const frames = items.map(item => {
+    const pic = pictureFor(item, 400, 600, item.title);
+    wrap.appendChild(pic);
+    return pic;
+  });
+  let i = 0;
+  const show = (n) => {
+    const nodes = wrap.children;
+    [...nodes].forEach((node, k) => node.classList.toggle("is-on", k === n));
+    caption.textContent = items[n].title;
+  };
+  requestAnimationFrame(() => show(0));
+  if(frames.length < 2 || reducedMotion()) return;
+  clearInterval(heroTimer);
+  heroTimer = setInterval(() => {
+    if(document.hidden) return;
+    i = (i + 1) % frames.length;
+    show(i);
+  }, 4200);
+}
+
+function renderHero(){
+  renderName();
   renderSlate();
-  document.getElementById("gate-role").textContent = CONTENT.role || "";
-  document.getElementById("gate-blurb").textContent = (CONTENT.hero && CONTENT.hero.blurb) || "";
-
-  const wrap = document.getElementById("reel-select");
-  wrap.innerHTML = "";
-  CONTENT.categories.forEach(cat => {
-    const btn = el("button", "reel");
-    btn.type = "button";
-    btn.setAttribute("data-cursor", "Load");
-    btn.innerHTML = `<span class="reel-icon"></span><span class="reel-label">${esc(cat.label)}</span><span class="reel-hint">${esc(cat.hint)}</span>`;
-    btn.addEventListener("click", () => {
-      activeCategory = cat.id;
-      renderTabs();
-      swapGrid();
-      document.getElementById("work").scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth" });
-    });
-    wrap.appendChild(btn);
-  });
+  // the role plus where he works, so the first screen says plainly what this is
+  const based = ((CONTENT.hero && CONTENT.hero.slate) || []).find(r => /based|city|location/i.test(r.label));
+  document.getElementById("hero-role").innerHTML =
+    esc(CONTENT.role || "") + (based ? `<span>Based in ${esc(based.value)}</span>` : "");
+  document.getElementById("hero-blurb").textContent = (CONTENT.hero && CONTENT.hero.blurb) || "";
+  document.getElementById("bar-mark").textContent = initials(CONTENT.name);
+  renderHeroPictures();
 }
 
-/* ---------- TICKER ---------- */
-function renderTicker(){
-  const track = document.getElementById("ticker");
-  if(!track) return;
-  const words = String(CONTENT.role || "")
-    .split(/[.·•]/).map(s => s.trim()).filter(Boolean);
-  if(!words.length) return;
-  const run = words.map(w => `<span class="tick">${esc(w)}</span>`).join("");
-  // twice so the loop can reset at -50% without a visible seam
-  track.innerHTML = run + run;
+function initials(name){
+  return String(name || "").split(/\s+/).filter(Boolean).map(w => w[0]).join("").toUpperCase().slice(0, 3);
 }
 
-/* ---------- HERO COLLAGE ----------
-   The arc behind the wordmark uses your actual work where it exists —
-   album covers, custom thumbnails, YouTube stills — and fills the rest
-   with the generated abstract cards, so it always reads as a full arc. */
-function collageSources(){
-  const out = [];
-  (CONTENT.work || []).forEach(w => {
-    if(w.images && w.images.length && w.images[0]) out.push(w.images[0]);
-    else if(w.image) out.push(w.image);
-    else {
-      const auto = autoThumb(w);
-      if(auto) out.push(auto);
-    }
-  });
-  return out;
+/* ---------- TIMECODE (ambient detail, respects reduced motion) ---------- */
+function startTimecode(){
+  const node = document.getElementById("timecode");
+  if(reducedMotion()){ node.style.display = "none"; return; }
+  let frames = 0;
+  setInterval(() => {
+    if(document.hidden) return;
+    frames++;
+    const f = frames % 24;
+    const totalSec = Math.floor(frames / 24);
+    const h = String(Math.floor(totalSec / 3600)).padStart(2, "0");
+    const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, "0");
+    const s = String(totalSec % 60).padStart(2, "0");
+    node.textContent = `${h}:${m}:${s}:${String(f).padStart(2, "0")}`;
+  }, 1000 / 24);
 }
 
-function buildCollage(){
-  const wrap = document.getElementById("collage");
-  if(!wrap) return;
-
-  const srcs = ART.slice();
-  // drop real work into the most-visible slots first, centre outward
-  const priority = [4, 3, 5, 2, 6, 1, 7, 0, 8];
-  collageSources().slice(0, 9).forEach((src, i) => { srcs[priority[i]] = src; });
-
-  wrap.innerHTML = "";
-  srcs.forEach(src => {
-    const slot = el("div", "col-slot");
-    const card = el("div", "col-card");
-    // only swap in the image once it actually loads, so a wrong path
-    // leaves a styled card rather than a broken-image icon
-    const img = new Image();
-    img.alt = "";
-    img.decoding = "async";
-    img.addEventListener("load", () => card.appendChild(img));
-    img.src = src;
-    slot.appendChild(card);
-    wrap.appendChild(slot);
-  });
-}
-
-/* ---------- TABS ---------- */
+/* ============================================================
+   WORK — the names pass the held frame; whichever name crosses
+   the middle of the screen shows its picture in the frame.
+   ============================================================ */
 function renderTabs(){
   const wrap = document.getElementById("tabs");
   wrap.innerHTML = "";
-  CONTENT.categories.forEach(cat => {
-    const btn = el("button", "tab" + (cat.id === activeCategory ? " active" : ""), esc(cat.label));
+  const cats = [{ id: "all", label: "All" }].concat(CONTENT.categories);
+  cats.forEach(cat => {
+    const count = cat.id === "all"
+      ? CONTENT.work.length
+      : CONTENT.work.filter(w => w.category === cat.id).length;
+    const btn = el("button", "chip", `${esc(cat.label)}`);
     btn.type = "button";
     btn.setAttribute("aria-pressed", String(cat.id === activeCategory));
+    btn.setAttribute("aria-label", `${cat.label}, ${count} project${count === 1 ? "" : "s"}`);
     btn.addEventListener("click", () => {
       if(cat.id === activeCategory) return;
       activeCategory = cat.id;
       renderTabs();
-      swapGrid();
+      renderWork();
     });
     wrap.appendChild(btn);
   });
 }
 
-/* crossfades the grid out, swaps content, fades it back in — motion tied to the click */
-function swapGrid(){
-  const grid = document.getElementById("work-grid");
-  if(reducedMotion()){ renderGrid(); return; }
-  grid.classList.add("swapping");
-  setTimeout(() => {
-    renderGrid();
-    grid.classList.remove("swapping");
-  }, 220);
+function actionFor(item){
+  if(item.images && item.images.length) return `View album, ${item.images.length} photo${item.images.length === 1 ? "" : "s"}`;
+  if(item.instagram) return "Watch the post";
+  if(item.video) return "Play";
+  return "Read more";
 }
 
-/* ---------- WORK GRID ---------- */
-let gridFirstRenderDone = false;
+function renderWork(){
+  const list = document.getElementById("work-list");
+  const frame = document.getElementById("work-frame");
+  list.innerHTML = "";
+  frame.innerHTML = "";
+  workPick = () => {}; workQueue = () => {};
 
-/* the stacked blur that softens the bottom of every thumbnail */
-const THUMB_FADE = `<div class="thumb-fade" aria-hidden="true"><div></div><div></div><div></div></div>`;
-const IG_GLYPH = `<svg class="ig-glyph" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="4.6" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="17.6" cy="6.4" r="1.3" fill="currentColor"/></svg>`;
+  const items = activeCategory === "all"
+    ? CONTENT.work
+    : CONTENT.work.filter(w => w.category === activeCategory);
 
-function thumbHTML(item){
-  const title = esc(item.title);
-
-  // photo album: cover is the first image, the rest stack behind it for the
-  // hover preview, plus a photo-count badge
-  if(item.images && item.images.length){
-    const shots = item.images.slice(0, 6);
-    const layers = shots.map((src, i) =>
-      `<img class="album-shot${i === 0 ? " is-active" : ""}" src="${esc(src)}" alt="${i === 0 ? title : ""}">`
-    ).join("");
-    const cover = shots[0] ? layers : `<div class="ph"></div>`;
-    return `${cover}${THUMB_FADE}<span class="count-badge">${item.images.length} photo${item.images.length===1?"":"s"}</span>`;
-  }
-
-  // an explicit cover always wins
-  if(item.image){
-    const play = (item.video || item.instagram) ? `<div class="play"></div>` : "";
-    return `<img src="${esc(item.image)}" alt="${title}">${THUMB_FADE}${play}`;
-  }
-
-  // YouTube is the one service that hands out a still for free
-  const auto = autoThumb(item);
-  if(auto){
-    return `<img src="${esc(auto)}" alt="${title}">${THUMB_FADE}<div class="play"></div>`;
-  }
-
-  // Instagram refuses to hand out thumbnails to other sites without an
-  // access token, so an IG item with no "image" gets a branded card
-  if(item.instagram){
-    return `<div class="ph"></div><div class="ig-cover">${IG_GLYPH}<span>View on Instagram</span></div>${THUMB_FADE}`;
-  }
-
-  // Drive and other players: grain placeholder with a play badge
-  if(item.video){
-    return `<div class="ph"></div>${THUMB_FADE}<div class="play"></div>`;
-  }
-  return `<div class="ph"></div>${THUMB_FADE}`;
-}
-
-/* hovering an album card riffles through its photos */
-function attachAlbumPreview(card, item){
-  if(!(item.images && item.images.length > 1)) return;
-  const shots = card.querySelectorAll(".album-shot");
-  if(shots.length < 2) return;
-  let i = 0, timer = null;
-  function show(n){
-    shots[i].classList.remove("is-active");
-    i = n % shots.length;
-    shots[i].classList.add("is-active");
-  }
-  card.addEventListener("mouseenter", () => {
-    if(reducedMotion() || timer) return;
-    timer = setInterval(() => show(i + 1), 900);
-  });
-  card.addEventListener("mouseleave", () => {
-    clearInterval(timer); timer = null;
-    show(0);
-  });
-}
-
-function renderGrid(){
-  const grid = document.getElementById("work-grid");
-  grid.innerHTML = "";
-  const items = CONTENT.work.filter(w => w.category === activeCategory);
-  if(items.length === 0){
-    grid.appendChild(el("p", "grid-empty", "No projects in this category yet — add one in content.js."));
+  if(!items.length){
+    list.appendChild(el("li", "work-empty", "Nothing here yet."));
+    setFacts(null);
     return;
   }
-  items.forEach((item, i) => {
-    const card = el("div", "card");
-    card.setAttribute("role", "button");
-    card.setAttribute("tabindex", "0");
-    if(!gridFirstRenderDone){
-      card.classList.add("reveal");
-      card.style.setProperty("--d", `${i * 0.08}s`);
-    }
-    const cue = item.images && item.images.length ? "View"
-      : item.instagram ? "Watch"
-      : item.video ? "Play" : "View";
-    card.setAttribute("data-cursor", cue);
-    const accent = ACCENT_BY_CATEGORY[item.category] || "var(--accent)";
-    card.innerHTML = `
-      <div class="card-thumb" style="background:linear-gradient(150deg, ${accent}, #08090b 78%)">
-        ${thumbHTML(item)}
-      </div>
-      <div class="card-body">
-        <p class="card-cat">${esc(labelFor(item.category))}</p>
-        <p class="card-title">${esc(item.title)}</p>
-        <p class="card-meta">${esc(item.role)} · ${esc(item.year)}</p>
-      </div>`;
-    card.addEventListener("click", () => openModal(item));
-    card.addEventListener("keydown", (e) => {
-      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openModal(item); }
-    });
-    attachAlbumPreview(card, item);
-    grid.appendChild(card);
+
+  const names = items.map((item, i) => {
+    frame.appendChild(pictureFor(item, 450, 450, ""));
+    const li = el("li");
+    const btn = el("button", "work-name", esc(item.title));
+    btn.type = "button";
+    btn.setAttribute("aria-label", `${item.title}, ${labelFor(item.category)}, ${item.year}. ${actionFor(item)}`);
+    btn.addEventListener("click", () => openModal(item));
+    btn.addEventListener("focus", () => setCurrent(i));
+    li.appendChild(btn);
+    list.appendChild(li);
+    return btn;
   });
-  if(!gridFirstRenderDone) initScrollReveal();
+
+  function setCurrent(i){
+    names.forEach((n, k) => n.classList.toggle("is-current", k === i));
+    [...frame.children].forEach((node, k) => node.classList.toggle("is-on", k === i));
+    setFacts(items[i]);
+  }
+  setCurrent(0);
+
+  // whichever name sits closest to the middle of the screen is the current one;
+  // measured on scroll so a fast flick can't skip past the last name
+  let current = 0, queued = false;
+  workPick = () => {
+    queued = false;
+    const mid = window.innerHeight / 2;
+    let best = 0, bestDist = Infinity;
+    names.forEach((n, k) => {
+      const r = n.getBoundingClientRect();
+      const d = Math.abs(r.top + r.height / 2 - mid);
+      if(d < bestDist){ bestDist = d; best = k; }
+    });
+    if(best !== current){ current = best; setCurrent(best); }
+  };
+  workQueue = () => { if(!queued){ queued = true; requestAnimationFrame(workPick); } };
+  workPick();
 }
 
-function labelFor(catId){
-  const c = CONTENT.categories.find(c => c.id === catId);
-  return c ? c.label : catId;
+let workPick = () => {}, workQueue = () => {};
+window.addEventListener("scroll", () => workQueue(), { passive: true });
+
+function setFacts(item){
+  const l = document.getElementById("work-fact-l");
+  const r = document.getElementById("work-fact-r");
+  if(!item){ l.innerHTML = ""; r.innerHTML = ""; return; }
+  l.innerHTML = `${esc(labelFor(item.category))}<span>${esc(item.role)}</span>`;
+  r.innerHTML = `${esc(item.year)}<span>${esc(actionFor(item))}</span>`;
 }
 
 /* ============================================================
@@ -350,9 +407,8 @@ const album = {
 function openModal(item){
   const modal = document.getElementById("modal");
   lastFocused = document.activeElement;
-  document.getElementById("modal-cat").textContent = labelFor(item.category);
   document.getElementById("modal-title").textContent = item.title;
-  document.getElementById("modal-meta").textContent = `${item.role} · ${item.year}`;
+  document.getElementById("modal-meta").textContent = `${labelFor(item.category)} · ${item.role} · ${item.year}`;
   document.getElementById("modal-desc").textContent = item.description || "";
 
   const singleWrap = document.getElementById("modal-single");
@@ -375,17 +431,12 @@ function openModal(item){
   } else {
     singleWrap.style.display = "block";
     const thumb = document.getElementById("modal-thumb");
-    const accent = ACCENT_BY_CATEGORY[item.category] || "var(--accent)";
     const videoSrc = resolveVideo(item.video);
+    thumb.innerHTML = "";
     if(videoSrc){
-      thumb.style.background = "none";
       thumb.innerHTML = `<iframe src="${esc(videoSrc)}" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture" title="${esc(item.title)}"></iframe>`;
-    } else if(item.image){
-      thumb.style.background = "none";
-      thumb.innerHTML = `<img src="${esc(item.image)}" alt="${esc(item.title)}">`;
     } else {
-      thumb.style.background = `linear-gradient(150deg, ${accent}, #08090b 78%)`;
-      thumb.innerHTML = "";
+      thumb.appendChild(pictureFor(item, 1600, 900, item.title));
     }
   }
 
@@ -393,14 +444,15 @@ function openModal(item){
   const href = item.link || item.instagram || null;
   if(href){
     link.href = href;
-    link.textContent = item.link ? "View project ↗" : "Open on Instagram ↗";
-    link.style.display = "inline-block";
+    link.textContent = item.link ? "View project" : "Open on Instagram";
+    link.style.display = "inline-flex";
   } else {
     link.style.display = "none";
   }
 
   modal.classList.add("open");
   modal.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
   document.getElementById("modal-close").focus();
 }
 
@@ -409,6 +461,7 @@ function closeModal(){
   if(!modal.classList.contains("open")) return;
   modal.classList.remove("open");
   modal.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
   stopAlbum();
   // an iframe keeps playing (audio included) even when just hidden with CSS —
   // clearing it out is what actually stops playback
@@ -416,6 +469,18 @@ function closeModal(){
   document.getElementById("ig-frame").innerHTML = "";
   document.getElementById("album-main").innerHTML = "";
   if(lastFocused && lastFocused.focus) lastFocused.focus();
+}
+
+/* keep Tab inside the open dialog */
+function trapFocus(e){
+  const modal = document.getElementById("modal");
+  if(e.key !== "Tab" || !modal.classList.contains("open")) return;
+  const focusable = [...modal.querySelectorAll("button, a[href], iframe, img[data-thumb]")]
+    .filter(n => n.offsetParent !== null);
+  if(!focusable.length) return;
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
 }
 
 /* ---------- ALBUM SLIDESHOW ---------- */
@@ -444,7 +509,7 @@ function tickAlbum(restart){
   if(album.raf) cancelAnimationFrame(album.raf);
   const step = (now) => {
     if(!album.playing){ album.raf = null; return; }
-    if(album.paused){ album.startedAt = now - 0; setBar(0); album.raf = requestAnimationFrame(step); return; }
+    if(album.paused){ album.startedAt = now; setBar(0); album.raf = requestAnimationFrame(step); return; }
     const p = Math.min((now - album.startedAt) / album.hold, 1);
     setBar(p);
     if(p >= 1){
@@ -476,7 +541,7 @@ function renderAlbumFrame(){
   img.src = src;
   img.alt = `Photo ${album.index + 1} of ${album.images.length}`;
   // crossfade: the outgoing frame fades while the new one fades in on top
-  const prev = main.querySelector("img");
+  const prev = main.querySelector("img:not(.is-out)");
   main.appendChild(img);
   requestAnimationFrame(() => img.classList.add("is-in"));
   if(prev){
@@ -493,9 +558,14 @@ function buildAlbumThumbs(){
   album.images.forEach((src, i) => {
     const img = el("img", i === album.index ? "active" : "");
     img.src = src;
-    img.alt = `Thumbnail ${i + 1}`;
-    img.setAttribute("data-cursor", "View");
+    img.alt = `Show photo ${i + 1}`;
+    img.tabIndex = 0;
+    img.setAttribute("role", "button");
+    img.setAttribute("data-thumb", "");
     img.addEventListener("click", () => goAlbum(i, true));
+    img.addEventListener("keydown", (e) => {
+      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); goAlbum(i, true); }
+    });
     thumbs.appendChild(img);
   });
 }
@@ -514,7 +584,6 @@ function syncToggle(){
   btn.style.display = single ? "none" : "inline-flex";
   btn.classList.toggle("is-paused", !album.playing);
   btn.setAttribute("aria-label", album.playing ? "Pause slideshow" : "Play slideshow");
-  btn.setAttribute("data-cursor", album.playing ? "Pause" : "Play");
 }
 
 function toggleAlbum(){
@@ -545,155 +614,63 @@ function initAlbumControls(){
   }, { passive: true });
 }
 
-/* ---------- HISTORY ---------- */
-function renderHistory(){
-  const wrap = document.getElementById("timeline");
-  wrap.innerHTML = "";
-  CONTENT.history.forEach((h, i) => {
-    const item = el("div", "tl-item reveal");
-    item.style.setProperty("--d", `${i * 0.12}s`);
-    item.innerHTML = `
-      <span class="tl-time">${esc(h.time)}</span>
-      <p class="tl-title">${esc(h.title)}</p>
-      <p class="tl-body">${esc(h.body)}</p>`;
-    wrap.appendChild(item);
-  });
-}
-
 /* ---------- ABOUT ---------- */
 function renderAbout(){
-  const wrap = document.getElementById("about-text");
-  wrap.innerHTML = CONTENT.about.paragraphs.map(p => `<p>${esc(p)}</p>`).join("");
+  const paras = CONTENT.about.paragraphs || [];
+  document.getElementById("about-lead").textContent = paras[0] || "";
+  document.getElementById("about-more").innerHTML = paras.slice(1).map(p => `<p>${esc(p)}</p>`).join("");
 
   const caption = document.getElementById("portrait-caption");
-  if(caption){
-    const text = CONTENT.about.caption || "";
-    caption.textContent = text;
-    if(!text) caption.style.display = "none";
-  }
+  const text = CONTENT.about.caption || "";
+  caption.textContent = text;
+  if(!text) caption.style.display = "none";
 
+  document.getElementById("kit").innerHTML =
+    (CONTENT.about.kit || []).map(k => `<li>${esc(k)}</li>`).join("");
+
+  document.querySelector(".portrait-empty").textContent = initials(CONTENT.name);
   renderPortrait();
-
-  const chips = document.getElementById("kit-chips");
-  chips.innerHTML = "";
-  const kit = CONTENT.about.kit || [];
-  // render the list twice back-to-back so the marquee can loop seamlessly at -50%
-  kit.concat(kit).forEach((k, i) => {
-    const isDup = i >= kit.length;
-    const chip = el("span", "chip" + (isDup ? " dup" : ""), esc(k));
-    if(isDup) chip.setAttribute("aria-hidden", "true");
-    chips.appendChild(chip);
-  });
 }
 
 function renderPortrait(){
   const src = CONTENT.about && CONTENT.about.portrait;
   if(!src) return;
   const frame = document.getElementById("portrait");
-  if(!frame) return;
   const img = new Image();
   img.alt = CONTENT.name || "Portrait";
   img.addEventListener("load", () => {
-    const placeholder = frame.querySelector("span");
-    if(placeholder) placeholder.remove();
-    frame.prepend(img);
+    frame.innerHTML = "";
+    frame.appendChild(img);
   });
   img.src = src;
 }
 
-/* ---------- CONTACT ---------- */
-function renderContact(){
-  const email = document.getElementById("contact-email");
-  email.textContent = CONTENT.contact.email;
-  email.href = `mailto:${CONTENT.contact.email}`;
-  const socials = document.getElementById("socials");
-  socials.innerHTML = "";
-  CONTENT.contact.socials.forEach(s => {
-    const a = el("a", null, esc(s.label));
-    a.href = s.url; a.target = "_blank"; a.rel = "noopener";
-    a.setAttribute("data-cursor", "Open");
-    socials.appendChild(a);
-  });
-  document.getElementById("year").textContent = new Date().getFullYear();
-}
-
-/* ---------- HEADER / NAME ---------- */
-function renderHeader(){
-  document.title = `${CONTENT.name} — ${CONTENT.role}`;
-}
-
-/* ---------- MOBILE MENU ---------- */
-function initMenu(){
-  const burger = document.getElementById("burger");
-  const menu = document.getElementById("menu");
-  if(!burger || !menu) return;
-
-  function setOpen(open){
-    menu.classList.toggle("open", open);
-    burger.classList.toggle("open", open);
-    burger.setAttribute("aria-expanded", String(open));
-    burger.setAttribute("aria-label", open ? "Close menu" : "Open menu");
-    menu.setAttribute("aria-hidden", String(!open));
-  }
-
-  burger.addEventListener("click", () => setOpen(!menu.classList.contains("open")));
-  menu.querySelectorAll("a").forEach(a => a.addEventListener("click", () => setOpen(false)));
-  document.addEventListener("keydown", (e) => { if(e.key === "Escape") setOpen(false); });
-  // the desktop nav takes over past this width — don't strand an open overlay
-  window.matchMedia("(min-width: 820px)").addEventListener("change", (e) => {
-    if(e.matches) setOpen(false);
-  });
-}
-
-/* ---------- TIMECODE (ambient detail, respects reduced motion) ---------- */
-function startTimecode(){
-  const node = document.getElementById("timecode");
-  if(reducedMotion()) return;
-  let frames = 0;
-  setInterval(() => {
-    frames++;
-    const f = frames % 24;
-    const totalSec = Math.floor(frames / 24);
-    const h = String(Math.floor(totalSec/3600)).padStart(2,"0");
-    const m = String(Math.floor((totalSec%3600)/60)).padStart(2,"0");
-    const s = String(totalSec%60).padStart(2,"0");
-    node.textContent = `${h}:${m}:${s}:${String(f).padStart(2,"0")}`;
-  }, 1000/24);
-}
-
 /* ---------- STATS ---------- */
 function renderStats(){
-  const wrap = document.getElementById("stats-grid");
-  wrap.innerHTML = "";
-  (CONTENT.stats || []).forEach(s => {
-    const stat = el("div", "stat");
+  const wrap = document.getElementById("stats");
+  const stats = CONTENT.stats || [];
+  if(!stats.length){ wrap.style.display = "none"; return; }
+  wrap.innerHTML = stats.map(s => {
     const match = String(s.value).match(/^(\d+)(.*)$/); // split "10+" into 10 and "+"
-    const numPart = match ? match[1] : null;
-    const suffix = match ? match[2] : "";
-    stat.innerHTML = `<div class="stat-value" ${numPart ? `data-target="${numPart}" data-suffix="${esc(suffix)}"` : ""}>${numPart ? "0" + esc(suffix) : esc(s.value)}</div><div class="stat-label">${esc(s.label)}</div>`;
-    wrap.appendChild(stat);
-  });
+    const attrs = match ? ` data-target="${match[1]}" data-suffix="${esc(match[2])}"` : "";
+    return `<div><dt${attrs}>${esc(s.value)}</dt><dd>${esc(s.label)}</dd></div>`;
+  }).join("");
 }
 
 function initStatsCountUp(){
   const section = document.getElementById("stats");
-  if(!section) return;
-  const values = section.querySelectorAll(".stat-value[data-target]");
-  if(!values.length) return;
-  if(reducedMotion()){
-    values.forEach(v => { v.textContent = v.dataset.target + v.dataset.suffix; });
-    return;
-  }
+  const values = section.querySelectorAll("dt[data-target]");
+  if(!values.length || reducedMotion()) return;
+  values.forEach(v => { v.textContent = "0" + v.dataset.suffix; });
   const io = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if(!entry.isIntersecting) return;
       values.forEach(v => {
         const target = parseInt(v.dataset.target, 10);
         const suffix = v.dataset.suffix;
-        const duration = 900;
         const start = performance.now();
         function tick(now){
-          const p = Math.min((now - start) / duration, 1);
+          const p = Math.min((now - start) / 900, 1);
           const eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
           v.textContent = Math.round(target * eased) + suffix;
           if(p < 1) requestAnimationFrame(tick);
@@ -706,228 +683,145 @@ function initStatsCountUp(){
   io.observe(section);
 }
 
-/* ============================================================
-   HERO MOTION (GSAP)
-   If GSAP fails to load, or the visitor asked for reduced motion,
-   we fall back to the CSS-only intro and everything still works.
-   ============================================================ */
-function initHeroMotion(){
-  const gate = document.getElementById("gate");
-  const hasGsap = typeof window.gsap !== "undefined";
-
-  if(!hasGsap || reducedMotion()){
-    gate.classList.add("intro-play");   // CSS fallback
-    return;
-  }
-
-  gsap.registerPlugin(ScrollTrigger);
-  gate.classList.add("js-motion");
-
-  const cards = gsap.utils.toArray("#collage .col-card");
-  const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-
-  // 1. the cards get dealt out of a stack in the middle into the arc
-  cards.forEach((card) => {
-    const slot = card.parentElement;
-    const r = getComputedStyle(slot).getPropertyValue("--r").trim() || "0deg";
-    gsap.set(card, { rotation: r });
-  });
-  tl.from(cards, {
-    x: () => gsap.utils.random(-40, 40),
-    y: () => window.innerHeight * 0.34,
-    rotation: 0,
-    scale: 0.55,
-    opacity: 0,
-    duration: 1.25,
-    stagger: { each: 0.055, from: "center" },
-    ease: "power4.out",
-  }, 0);
-
-  // 2. the wordmark slides up out of its clipping line
-  tl.from(".wm-inner", {
-    yPercent: 115,
-    duration: 1.05,
-    stagger: 0.09,
-    ease: "power4.out",
-  }, 0.35);
-
-  // 3. everything under it settles in
-  tl.from([".slate", ".gate-role", ".gate-blurb-wrap", ".gate-question", ".reel"], {
-    y: 22, opacity: 0, duration: 0.8, stagger: 0.07,
-  }, 0.7);
-
-  // A from() tween starts its targets at opacity 0, so if the timeline were
-  // ever prevented from finishing the hero would be left blank. requestAnimation-
-  // Frame throttles in a background tab, which stalls it legitimately — GSAP
-  // resumes on its own once the tab is looked at, but this guarantees it.
-  const failsafe = setTimeout(() => {
-    if(document.visibilityState === "visible" && tl.progress() < 1) tl.progress(1);
-  }, 6000);
-  tl.eventCallback("onComplete", () => {
-    clearTimeout(failsafe);
-    // hand the elements back to CSS once the intro has played
-    gsap.set([".slate", ".gate-role", ".gate-blurb-wrap", ".gate-question", ".reel", ".wm-inner"],
-      { clearProps: "opacity,transform" });
-  });
-
-  // 4. cards keep breathing once they've landed — each on its own clock
-  cards.forEach((card, i) => {
-    gsap.to(card, {
-      yPercent: gsap.utils.random(-7, -3),
-      rotation: "+=" + gsap.utils.random(1.2, 2.6),
-      duration: gsap.utils.random(3.2, 5.4),
-      delay: 1.2 + i * 0.09,
-      ease: "sine.inOut",
-      yoyo: true,
-      repeat: -1,
-    });
-  });
-
-  // 5. mouse parallax — quickTo keeps it smooth instead of jumpy
-  const inner = document.querySelector(".collage-inner");
-  if(inner && window.matchMedia("(pointer: fine)").matches){
-    const xTo = gsap.quickTo(inner, "x", { duration: 0.7, ease: "power3" });
-    const yTo = gsap.quickTo(inner, "y", { duration: 0.7, ease: "power3" });
-    gate.addEventListener("mousemove", (e) => {
-      const rect = gate.getBoundingClientRect();
-      xTo(((e.clientX - rect.left) / rect.width - 0.5) * -46);
-      yTo(((e.clientY - rect.top) / rect.height - 0.5) * -30);
-    });
-    gate.addEventListener("mouseleave", () => { xTo(0); yTo(0); });
-  }
-
-  // 6. scrolling away pushes the arc down and back, and lifts the text out
-  gsap.to(".collage-scroll", {
-    yPercent: 16, scale: 1.14, ease: "none",
-    scrollTrigger: { trigger: gate, start: "top top", end: "bottom top", scrub: 0.6 },
-  });
-  gsap.to(".gate-inner", {
-    yPercent: -14, opacity: 0.15, ease: "none",
-    scrollTrigger: { trigger: gate, start: "top top", end: "bottom top", scrub: 0.6 },
+/* ---------- CREDITS ---------- */
+function renderHistory(){
+  const wrap = document.getElementById("timeline");
+  wrap.innerHTML = "";
+  CONTENT.history.forEach((h, i) => {
+    const item = el("details", "credit rv");
+    item.style.setProperty("--d", `${i * 70}ms`);
+    if(i === 0) item.open = true;
+    item.innerHTML = `
+      <summary><span class="credit-time">${esc(h.time)}</span><span>${esc(h.title)}</span><span class="plus" aria-hidden="true"></span></summary>
+      <p class="credit-body">${esc(h.body)}</p>`;
+    wrap.appendChild(item);
   });
 }
 
-/* ---------- CUSTOM CURSOR ---------- */
-function initCustomCursor(){
-  if(!window.matchMedia("(pointer: fine)").matches) return; // touch devices: skip entirely
-
-  const reduced = reducedMotion();
-
-  const dot = el("div", "cursor-dot");
-  const ring = el("div", "cursor-ring");
-  const label = el("span", "cursor-label");
-  ring.appendChild(label);
-  // start off-screen so there's no stray circle at (0,0) before the mouse first moves
-  dot.style.transform = "translate(-100px, -100px)";
-  ring.style.transform = "translate(-100px, -100px)";
-  document.body.appendChild(dot);
-  document.body.appendChild(ring);
-
-  let mouseX = -100, mouseY = -100, ringX = -100, ringY = -100;
-
-  document.addEventListener("mousemove", (e) => {
-    mouseX = e.clientX; mouseY = e.clientY;
-    dot.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%,-50%)`;
-    if(reduced){
-      ring.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%,-50%)`;
-    }
-  });
-
-  if(!reduced){
-    (function follow(){
-      ringX += (mouseX - ringX) * 0.18;
-      ringY += (mouseY - ringY) * 0.18;
-      ring.style.transform = `translate(${ringX}px, ${ringY}px) translate(-50%,-50%)`;
-      requestAnimationFrame(follow);
-    })();
-  }
-
-  // event delegation so this works on cards/buttons rendered after this runs
-  document.addEventListener("mouseover", (e) => {
-    const target = e.target.closest("[data-cursor], a, button");
-    if(!target) return;
-    label.textContent = target.getAttribute("data-cursor") || "";
-    ring.classList.add("hovering");
-    dot.classList.add("hovering");
-  });
-  document.addEventListener("mouseout", (e) => {
-    const target = e.target.closest("[data-cursor], a, button");
-    if(!target) return;
-    ring.classList.remove("hovering");
-    dot.classList.remove("hovering");
-    label.textContent = "";
-  });
-
-  document.addEventListener("mouseleave", () => { dot.style.opacity = "0"; ring.style.opacity = "0"; });
-  document.addEventListener("mouseenter", () => { dot.style.opacity = "1"; ring.style.opacity = "1"; });
+function fitCreditsWord(){
+  const h2 = document.getElementById("credits-title");
+  fitLines(h2, [document.getElementById("credits-word")]);
 }
 
-/* ---------- SCROLL REVEAL ---------- */
-function initScrollReveal(){
-  const targets = document.querySelectorAll(".reveal:not(.in-view)");
-  if(reducedMotion()){
-    targets.forEach(t => t.classList.add("in-view"));
+/* ---------- CONTACT ---------- */
+function renderContact(){
+  const email = CONTENT.contact.email || "";
+  const a = document.getElementById("contact-email");
+  a.href = `mailto:${email}`;
+  a.setAttribute("aria-label", `Email ${email}`);
+  // long addresses break after the @ onto a second line
+  const at = email.indexOf("@");
+  const split = at > 0 && (email.length > 26 || isNarrow());
+  a.innerHTML = split
+    ? `<span aria-hidden="true">${esc(email.slice(0, at + 1))}</span><span aria-hidden="true">${esc(email.slice(at + 1))}</span>`
+    : `<span aria-hidden="true">${esc(email)}</span>`;
+
+  const slate = (CONTENT.hero && CONTENT.hero.slate) || [];
+  const based = slate.find(r => /based|city|location/i.test(r.label));
+  const status = slate.find(r => /status/i.test(r.label));
+  document.getElementById("contact-where").textContent =
+    [status && status.value, based && based.value].filter(Boolean).join(" · ");
+
+  document.getElementById("socials").innerHTML = (CONTENT.contact.socials || []).map(s =>
+    `<li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)}</a></li>`).join("");
+  document.getElementById("year").textContent = new Date().getFullYear();
+  document.getElementById("fine-name").textContent = CONTENT.name;
+}
+
+function fitEmail(){
+  const a = document.getElementById("contact-email");
+  fitLines(a, [...a.querySelectorAll("span")], window.innerHeight * 0.3);
+}
+
+/* ---------- TOP BAR: steps aside while reading down, returns on the way up ---------- */
+function initBar(){
+  const bar = document.querySelector(".bar");
+  let lastY = window.scrollY;
+  window.addEventListener("scroll", () => {
+    const y = window.scrollY;
+    const down = y > lastY && y > window.innerHeight * 0.6;
+    bar.classList.toggle("is-hidden", down && !document.getElementById("modal").classList.contains("open"));
+    lastY = y;
+  }, { passive: true });
+  bar.addEventListener("focusin", () => bar.classList.remove("is-hidden"));
+}
+
+/* ---------- ENTRANCES ---------- */
+function initReveal(){
+  const targets = document.querySelectorAll(".rv:not(.in)");
+  if(!("IntersectionObserver" in window)){
+    targets.forEach(t => t.classList.add("in"));
     return;
   }
   const io = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if(entry.isIntersecting){
-        entry.target.classList.add("in-view");
+        entry.target.classList.add("in");
         io.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.15, rootMargin: "0px 0px -8% 0px" });
+  }, { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
   targets.forEach(t => io.observe(t));
 }
 
-/* ---------- LOADER (the one deliberate page-load sequence) ---------- */
-function runLoader(){
-  const loader = document.getElementById("loader");
-  const reduced = reducedMotion();
-  const holdTime = reduced ? 150 : 1250; // let the clap animation actually finish before hiding
+/* ---------- FIT EVERYTHING, AND AGAIN ON RESIZE ---------- */
+function fitAll(){
+  fitName();
+  fitCreditsWord();
+  fitEmail();
+}
 
-  setTimeout(() => {
-    loader.classList.add("hide");
-    initHeroMotion();
-    setTimeout(() => {
-      loader.remove();
-      document.documentElement.classList.remove("is-loading");
-      // The hero timeline is built while the loader still has the page pinned
-      // with overflow:hidden, so ScrollTrigger measured a document that could
-      // not scroll. Now that it can, make it measure again — otherwise the
-      // hero parallax starts and ends at the wrong scroll positions.
-      if(window.ScrollTrigger) ScrollTrigger.refresh();
-    }, reduced ? 200 : 650);
-  }, holdTime);
+let wasNarrow = isNarrow();
+function onResize(){
+  const narrow = isNarrow();
+  if(narrow !== wasNarrow){
+    // the name and the email change their line breaks at the phone width
+    wasNarrow = narrow;
+    renderName();
+    renderContact();
+    document.documentElement.classList.add("is-ready");
+  }
+  fitAll();
 }
 
 /* ---------- INIT ---------- */
 document.addEventListener("DOMContentLoaded", () => {
-  document.documentElement.classList.add("is-loading");
-  renderHeader();
-  renderGate();
-  renderTicker();
-  buildCollage();
+  document.title = `${CONTENT.name} — ${CONTENT.role}`;
+  renderHero();
   renderTabs();
-  renderGrid();
-  renderHistory();
+  renderWork();
   renderAbout();
-  renderContact();
   renderStats();
+  renderHistory();
+  renderContact();
   startTimecode();
-  runLoader();
-  initScrollReveal();
-  initStatsCountUp();
-  initCustomCursor();
-  initMenu();
+  initBar();
   initAlbumControls();
-  gridFirstRenderDone = true;
+  initStatsCountUp();
+
+  fitAll();
+  // fonts change the measurements, so fit again once they have arrived
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => {
+    fitAll();
+    requestAnimationFrame(() => document.documentElement.classList.add("is-ready"));
+    initReveal();
+  });
+  // a face that finishes loading late changes the widths again
+  if(document.fonts) document.fonts.addEventListener("loadingdone", fitAll);
+  window.addEventListener("load", fitAll);
+
+  let resizeTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(onResize, 120);
+  });
 
   document.getElementById("modal-close").addEventListener("click", closeModal);
   document.getElementById("modal").addEventListener("click", (e) => {
     if(e.target.id === "modal") closeModal();
   });
   document.addEventListener("keydown", (e) => {
+    trapFocus(e);
     if(e.key === "Escape") closeModal();
     const modalOpen = document.getElementById("modal").classList.contains("open");
     if(modalOpen && album.images.length){
