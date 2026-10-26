@@ -105,45 +105,56 @@
   }
 
   /* ============================================================
-     HERO — photos made of particles
-     The photo is a fine grid of particles, one per cell, so at rest
-     the picture reads clearly. Each photo fades to nothing toward its
-     edges, so there is never a hard frame. Changing photo sends a
-     ripple out from where you clicked (or the centre): as it reaches
-     a particle, that particle pops out, takes the new photo's colour
-     and settles back into place. Positions live in typed arrays and
-     are drawn into a small pixel buffer scaled up crisply, which keeps
-     tens of thousands of particles fast.
+     HERO — a photo that turns to pixels only when it moves
+     At rest the hero shows the real photo at full resolution. Each
+     cell of a fine grid over it is also a particle: when the cursor
+     pushes a cell, or the ripple of a photo change reaches it, that
+     cell lifts out of the photo as a coloured pixel, moves, and drops
+     back into the picture once it has settled. Loose pixels in the
+     photo's own colours drift around its faded edges and corners.
+     Every photo fades to nothing toward its edges, so there is never
+     a hard frame.
      ============================================================ */
   function smooth(t){ t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); }
+  // the oval fade: full strength in the middle, exactly nothing a little inside every edge
+  function vignette(nx, ny){ return smooth((0.96 - Math.sqrt(nx * nx * 0.96 + ny * ny)) / 0.7); }
 
-  // every grid cell of the photo, with its colour and how visible it is
-  function sampleImage(img, gw, gh){
-    const off = document.createElement("canvas");
-    off.width = gw; off.height = gh;
-    const g = off.getContext("2d", { willReadFrequently: true });
+  // the photo, cover-fitted to the stage and faded at its edges, at full resolution
+  function buildLayer(img, w, h){
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    const g = c.getContext("2d", { willReadFrequently: true });
     g.imageSmoothingQuality = "high";
-    // cover-fit the photo into the grid
-    const s = Math.max(gw / img.naturalWidth, gh / img.naturalHeight);
+    const s = Math.max(w / img.naturalWidth, h / img.naturalHeight);
     const dw = img.naturalWidth * s, dh = img.naturalHeight * s;
-    g.drawImage(img, (gw - dw) / 2, (gh - dh) / 2, dw, dh);
+    g.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+    const d = g.getImageData(0, 0, w, h);
+    const px = d.data;
+    for(let y = 0; y < h; y++){
+      const ny = (y + 0.5) / h * 2 - 1;
+      for(let x = 0; x < w; x++){
+        const nx = (x + 0.5) / w * 2 - 1;
+        const i = (y * w + x) * 4 + 3;
+        px[i] = px[i] * vignette(nx, ny);
+      }
+    }
+    g.putImageData(d, 0, 0);
+    return c;
+  }
+
+  // the same picture at grid resolution: one colour and opacity per particle
+  function sampleLayer(layer, gw, gh){
+    const c = document.createElement("canvas");
+    c.width = gw; c.height = gh;
+    const g = c.getContext("2d", { willReadFrequently: true });
+    g.imageSmoothingQuality = "high";
+    g.drawImage(layer, 0, 0, gw, gh);
     const data = g.getImageData(0, 0, gw, gh).data;
     const n = gw * gh;
     const r = new Uint8Array(n), gg = new Uint8Array(n), b = new Uint8Array(n), al = new Float32Array(n);
-    for(let y = 0; y < gh; y++){
-      const ny = (y + 0.5) / gh * 2 - 1;
-      for(let x = 0; x < gw; x++){
-        const i = y * gw + x, k = i * 4;
-        const nx = (x + 0.5) / gw * 2 - 1;
-        // a soft oval vignette: full strength in the middle, fading to exactly
-        // nothing a little inside every edge, so the canvas never shows a line
-        const e = Math.sqrt(nx * nx * 0.96 + ny * ny);
-        const vig = smooth((0.96 - e) / 0.7);
-        const lum = (0.2126 * data[k] + 0.7152 * data[k + 1] + 0.0722 * data[k + 2]) / 255;
-        r[i] = data[k]; gg[i] = data[k + 1]; b[i] = data[k + 2];
-        // true black stays see-through so the glow shows through it
-        al[i] = Math.min(1, lum * 10) * vig;
-      }
+    for(let i = 0; i < n; i++){
+      const k = i * 4;
+      r[i] = data[k]; gg[i] = data[k + 1]; b[i] = data[k + 2]; al[i] = data[k + 3] / 255;
     }
     return { r, g: gg, b, al };
   }
@@ -169,39 +180,46 @@
     }
 
     const g = canvas.getContext("2d");
-    const buf = document.createElement("canvas");
-    const bg = buf.getContext("2d");
-    let W = 0, H = 0, rect = null, step = 3, gw = 1, gh = 1, pix = null, pix32 = null;
+    // grid-sized buffers: moving pixels, and which cells show the new or the old photo
+    const mk = () => { const c = document.createElement("canvas"); return { c, g: c.getContext("2d") }; };
+    const bMove = mk(), bNew = mk(), bOld = mk();
+    // stage-sized scratch canvases for cutting a photo to the cells that are at rest
+    const offA = mk(), offB = mk();
+    let W = 0, H = 0, rect = null, step = 3, gw = 1, gh = 1;
+    let pMove, pNew, pOld, uMove, uNew, uOld;
+    let newLayer = null, oldLayer = null;
     let current = -1;
     const images = sources.map(s => { const im = new Image(); im.decoding = "async"; im.src = s.src; return im; });
 
     // particle state: particle i always belongs to grid cell i
     let N = 0;
-    let X, Y, VX, VY, HX, HY, CR, CG, CB, A, TR, TG, TB, TA, WAIT;
-    // the next photo, held until the ripple reaches each particle
-    let NR, NG, NB, NA;
+    let X, Y, VX, VY, HX, HY, CR, CG, CB, A, TR, TG, TB, TA, WAIT, NEW;
+    let NR, NG, NB, NA;   // the next photo, held until the ripple reaches each particle
+
+    // loose pixels drifting around the faded edges and corners
+    let floaters = [];
 
     function size(){
       rect = stage.getBoundingClientRect();
       W = Math.max(1, Math.round(rect.width));
       H = Math.max(1, Math.round(rect.height));
-      // finer grid on bigger, faster screens; about 36k particles on a desktop
       const target = fine ? 36000 : 15000;
       step = Math.max(2, Math.ceil(Math.sqrt((W * H) / target)));
       gw = Math.ceil(W / step); gh = Math.ceil(H / step);
-      buf.width = gw; buf.height = gh;
-      pix = bg.createImageData(gw, gh);
-      pix32 = new Uint32Array(pix.data.buffer);
+      for(const b of [bMove, bNew, bOld]){ b.c.width = gw; b.c.height = gh; }
+      for(const o of [offA, offB]){ o.c.width = W * DPR; o.c.height = H * DPR; o.g.setTransform(DPR, 0, 0, DPR, 0, 0); }
+      pMove = bMove.g.createImageData(gw, gh); uMove = new Uint32Array(pMove.data.buffer);
+      pNew = bNew.g.createImageData(gw, gh); uNew = new Uint32Array(pNew.data.buffer);
+      pOld = bOld.g.createImageData(gw, gh); uOld = new Uint32Array(pOld.data.buffer);
       canvas.width = W * DPR; canvas.height = H * DPR;
       canvas.style.width = W + "px"; canvas.style.height = H + "px";
       g.setTransform(DPR, 0, 0, DPR, 0, 0);
-      g.imageSmoothingEnabled = false;
 
       N = gw * gh;
       const f = () => new Float32Array(N);
       X = f(); Y = f(); VX = f(); VY = f(); HX = f(); HY = f();
       CR = f(); CG = f(); CB = f(); A = f(); TR = f(); TG = f(); TB = f(); TA = f(); WAIT = f();
-      NR = f(); NG = f(); NB = f(); NA = f();
+      NR = f(); NG = f(); NB = f(); NA = f(); NEW = new Uint8Array(N);
       for(let i = 0; i < N; i++){
         HX[i] = (i % gw + 0.5) * step;
         HY[i] = (((i / gw) | 0) + 0.5) * step;
@@ -209,6 +227,25 @@
         X[i] = Math.random() * W; Y[i] = Math.random() * H;
         WAIT[i] = -1;
       }
+      makeFloaters();
+    }
+
+    function makeFloaters(){
+      const count = fine ? 240 : 110;
+      floaters = Array.from({ length: count }, () => {
+        // most sit in the fading band; some reach right out into the corners
+        const corner = Math.random() < 0.4;
+        const ang = corner ? (Math.PI / 4 + (Math.random() * 4 | 0) * Math.PI / 2 + (Math.random() - 0.5) * 0.6)
+                           : Math.random() * Math.PI * 2;
+        return {
+          ang, r: corner ? 1.0 + Math.random() * 0.36 : 0.74 + Math.random() * 0.3,
+          spin: (Math.random() - 0.5) * 0.0012,
+          wob: Math.random() * Math.PI * 2, wobS: 0.0006 + Math.random() * 0.0014,
+          tw: Math.random() * Math.PI * 2, twS: 0.001 + Math.random() * 0.003,
+          size: step * (Math.random() < 0.25 ? 2 : 1),
+          ox: 0, oy: 0, vx: 0, vy: 0,
+        };
+      });
     }
 
     // ox, oy: where the ripple starts (the click, or the middle)
@@ -220,7 +257,11 @@
       }
       current = index;
       if(caption) caption.textContent = sources[index].title || "";
-      const s = sampleImage(img, gw, gh);
+      const layer = buildLayer(img, W, H);
+      const s = sampleLayer(layer, gw, gh);
+      if(instant || !newLayer){ oldLayer = null; }
+      else { oldLayer = newLayer; }
+      newLayer = layer;
       if(ox == null){ ox = W / 2; oy = H / 2; }
       // the ripple crosses the whole stage in about 0.9 seconds
       const reach = Math.hypot(Math.max(ox, W - ox), Math.max(oy, H - oy)) || 1;
@@ -228,23 +269,39 @@
         NR[i] = s.r[i]; NG[i] = s.g[i]; NB[i] = s.b[i]; NA[i] = s.al[i];
         if(instant){
           TR[i] = CR[i] = NR[i]; TG[i] = CG[i] = NG[i]; TB[i] = CB[i] = NB[i]; TA[i] = NA[i]; A[i] = 0;
-          WAIT[i] = -1;
+          WAIT[i] = -1; NEW[i] = 1;
         } else {
           const d = Math.hypot(HX[i] - ox, HY[i] - oy) / reach;
           WAIT[i] = d * 900 + Math.random() * 90;
+          NEW[i] = 0;
         }
       }
       rippleX = ox; rippleY = oy; rippleReach = reach;
+      morphing = !instant;
     }
-    let rippleX = 0, rippleY = 0, rippleReach = 1;
+    let rippleX = 0, rippleY = 0, rippleReach = 1, morphing = false;
 
-    let visible = true, raf = null, last = performance.now(), sinceSwap = 0;
+    let visible = true, raf = null, last = performance.now(), sinceSwap = 0, clock = 0;
     const HOLD = 6500;
+
+    // cut a photo down to the cells marked in a grid mask, then lay it on the stage
+    function drawMasked(off, maskCanvas, layer){
+      const o = off.g;
+      o.globalCompositeOperation = "copy";
+      o.imageSmoothingEnabled = false;
+      o.drawImage(maskCanvas, 0, 0, gw * step, gh * step);
+      o.globalCompositeOperation = "source-in";
+      o.drawImage(layer, 0, 0, W, H);
+      o.globalCompositeOperation = "source-over";
+      g.drawImage(off.c, 0, 0, W, H);
+    }
 
     function tick(now){
       raf = null;
       if(!visible) return;
-      const ms = Math.min(48, now - last); last = now;
+      // the first photo is still loading
+      if(!newLayer){ last = now; raf = requestAnimationFrame(tick); return; }
+      const ms = Math.min(48, now - last); last = now; clock += ms;
       const dt = ms / 16.67;
       readSound();
       sinceSwap += ms;
@@ -260,14 +317,17 @@
       const cx = W / 2, cy = H / 2;
       // friction scaled to the frame time, so slow screens settle as fast as quick ones
       const damp = Math.pow(0.84, dt), ease = 1 - Math.pow(0.86, dt), fade = 1 - Math.pow(0.9, dt);
+      const SOLID = 0xff000000 | 0;
 
-      pix32.fill(0);
+      uMove.fill(0); uNew.fill(0); uOld.fill(0);
+      let moving = 0, restingNew = 0, restingOld = 0, waiting = 0;
       for(let i = 0; i < N; i++){
         // the ripple arrives: pop out away from where it started, then take the new colour
         if(WAIT[i] >= 0){
+          waiting++;
           WAIT[i] -= ms;
           if(WAIT[i] < 0){
-            TR[i] = NR[i]; TG[i] = NG[i]; TB[i] = NB[i]; TA[i] = NA[i];
+            TR[i] = NR[i]; TG[i] = NG[i]; TB[i] = NB[i]; TA[i] = NA[i]; NEW[i] = 1;
             const dx = HX[i] - rippleX, dy = HY[i] - rippleY, d = Math.sqrt(dx * dx + dy * dy) || 1;
             const kick = 2 + 3.5 * (1 - Math.min(1, d / rippleReach));
             VX[i] += (dx / d) * kick + (Math.random() - 0.5) * 2.5;
@@ -292,8 +352,18 @@
         const x = X[i] += vx * dt, y = Y[i] += vy * dt;
         CR[i] += (TR[i] - CR[i]) * ease; CG[i] += (TG[i] - CG[i]) * ease; CB[i] += (TB[i] - CB[i]) * ease;
         const a = A[i] += (TA[i] - A[i]) * fade;
-        if(a < 0.01) continue;
 
+        // at rest: back in its own cell, still, and done changing colour
+        const off = Math.abs(x - HX[i]) + Math.abs(y - HY[i]);
+        const resting = off < 0.6 && vx * vx + vy * vy < 0.01 && Math.abs(a - TA[i]) < 0.03 &&
+          Math.abs(CR[i] - TR[i]) + Math.abs(CG[i] - TG[i]) + Math.abs(CB[i] - TB[i]) < 6;
+        if(resting){
+          if(NEW[i]){ uNew[i] = SOLID; restingNew++; }
+          else { uOld[i] = SOLID; restingOld++; }
+          continue;
+        }
+        moving++;
+        if(a < 0.01) continue;
         const gx = (x / step) | 0, gy = (y / step) | 0;
         if(gx < 0 || gy < 0 || gx >= gw || gy >= gh) continue;
         // fast movers glow warm, like sparks
@@ -303,15 +373,52 @@
           const t = Math.min(1, (Math.sqrt(sp) - 0.6) / 6);
           r += (255 - r) * t; gg += (110 - gg) * t; b += (50 - b) * t;
         }
-        // where two particles land on one cell, the brighter one shows
-        const j = gy * gw + gx, prev = pix32[j] >>> 24, al = (a * 255) | 0;
-        if(al >= prev) pix32[j] = (al << 24) | ((b | 0) << 16) | ((gg | 0) << 8) | (r | 0);
+        const j = gy * gw + gx, prev = uMove[j] >>> 24, al = (a * 255) | 0;
+        if(al >= prev) uMove[j] = (al << 24) | ((b | 0) << 16) | ((gg | 0) << 8) | (r | 0);
       }
+      if(morphing && !waiting && !restingOld){ morphing = false; oldLayer = null; }
 
-      bg.putImageData(pix, 0, 0);
       g.clearRect(0, 0, W, H);
-      g.drawImage(buf, 0, 0, gw * step, gh * step);
+      if(!moving && !restingOld){
+        // everything at rest: the real photo, untouched
+        g.drawImage(newLayer, 0, 0, W, H);
+      } else {
+        if(restingOld && oldLayer){ bOld.g.putImageData(pOld, 0, 0); drawMasked(offA, bOld.c, oldLayer); }
+        if(restingNew){ bNew.g.putImageData(pNew, 0, 0); drawMasked(offB, bNew.c, newLayer); }
+        bMove.g.putImageData(pMove, 0, 0);
+        g.imageSmoothingEnabled = false;
+        g.drawImage(bMove.c, 0, 0, gw * step, gh * step);
+      }
+      drawFloaters(dt, push, mx, my);
       raf = requestAnimationFrame(tick);
+    }
+
+    function drawFloaters(dt, push, mx, my){
+      const hx = W / 2, hy = H / 2, sq = Math.sqrt(0.96);
+      for(const f of floaters){
+        f.ang += f.spin * dt;
+        f.wob += f.wobS * dt * 16;
+        f.tw += f.twS * dt * 16;
+        const r = f.r + Math.sin(f.wob) * 0.035;
+        let x = hx + Math.cos(f.ang) * r * hx / sq, y = hy + Math.sin(f.ang) * r * hy;
+        // the cursor nudges them aside too, and they drift back
+        if(push){
+          const dx = x + f.ox - mx, dy = y + f.oy - my, d2 = dx * dx + dy * dy;
+          if(d2 < 90 * 90){ const d = Math.sqrt(d2) || 1, k = (1 - d / 90) * 2.2; f.vx += dx / d * k; f.vy += dy / d * k; }
+        }
+        f.vx = (f.vx - f.ox * 0.04) * 0.9; f.vy = (f.vy - f.oy * 0.04) * 0.9;
+        f.ox += f.vx * dt; f.oy += f.vy * dt;
+        x += f.ox; y += f.oy;
+        if(x < 0 || y < 0 || x >= W || y >= H) continue;
+        // coloured from the photo underneath, a little brighter
+        const ci = Math.min(N - 1, ((y / step) | 0) * gw + ((x / step) | 0));
+        const lift = 40 + sound.level * 120;
+        const r0 = Math.min(255, TR[ci] + lift) | 0, g0 = Math.min(255, TG[ci] + lift) | 0, b0 = Math.min(255, TB[ci] + lift) | 0;
+        const a = (0.25 + 0.55 * (0.5 + 0.5 * Math.sin(f.tw))) * (1 + sound.level);
+        g.fillStyle = `rgba(${r0},${g0},${b0},${Math.min(1, a).toFixed(3)})`;
+        const s = f.size * (1 + sound.bass * 0.8);
+        g.fillRect(Math.round(x / step) * step, Math.round(y / step) * step, s, s);
+      }
     }
 
     function pointerOnStage(){
@@ -349,7 +456,7 @@
         // phones fire resize when the address bar slides; only rebuild on a real width change
         if(window.innerWidth === lastW){ rect = stage.getBoundingClientRect(); return; }
         lastW = window.innerWidth;
-        size(); form(Math.max(0, current), null, null, true);
+        size(); newLayer = null; form(Math.max(0, current), null, null, true);
       }, 150);
     });
     window.addEventListener("scroll", () => { rect = stage.getBoundingClientRect(); }, { passive: true });

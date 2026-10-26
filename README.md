@@ -58,9 +58,10 @@ Give any piece a `preview` (a short, silent `.mp4` under `assets/films/`) and
 it loops on the big screen in the Work section while the full video stays
 wherever it is (Drive, YouTube…). A video kept with the site previews itself.
 
-Give a film a `type` to file it under a heading, e.g. `type: "Glimpses"` or
-`type: "Promo"`. Each type gets its own filter in the Work section, grouped
-under "Films". A film without a type shows under "Other".
+Give a film a `type` to file it under a heading, e.g. `type: "Glimpses"`,
+`type: "Promo"` or `type: "Vlog"`. In the Work section, picking "Films" opens
+a row with one filter per type. Edits and films each get their own grid, in
+the order you list them here.
 
 ### 2b. Pulling a piece straight from Instagram
 If the work already lives on your Instagram, you don't need to re-upload it.

@@ -292,44 +292,40 @@ function startTimecode(){
 }
 
 /* ============================================================
-   WORK — one screen shows the piece you are pointing at (a hosted
-   video plays there silently), with its details beside it; below,
-   every edit and film sits in one grid. The filters split films by
-   type (Glimpses, Promo…) and keep edits on their own. Clicking a
-   piece, or the screen, opens it to watch with sound.
+   WORK — one screen shows the piece you are pointing at (its silent
+   preview loops there), with its details beside it; below, the films
+   and the edits each sit in their own grid. Films can be narrowed to
+   a type (Glimpses, Promo, Vlog…). Clicking a piece, or the screen,
+   opens it to watch with sound.
    ============================================================ */
 const PHOTO = "photography";
 function listWork(){ return CONTENT.work.filter(w => w.category !== PHOTO); }
 
-/* the type a piece is filed under: its own "type", or its category's name */
+/* the label on a card: a film's type, or "Edit" */
 function groupOf(item){
-  const type = (item.type || "").trim();
-  if(type) return type;
-  // a film without a type sits under "Other", so it isn't confused with the "Films" label
-  const typed = item.category === "films" && listWork().some(w => w.category === "films" && (w.type || "").trim());
-  return typed ? "Other" : labelFor(item.category);
+  if(item.category === "edits") return (item.type || "").trim() || "Edit";
+  return (item.type || "").trim() || labelFor(item.category);
 }
 
-/* the filters, in order: film types first (as they appear in content.js), then edits */
-function workGroups(){
-  const rank = { films: 0, edits: 1 };
-  const groups = [];
-  listWork().forEach(item => {
-    const name = groupOf(item);
-    let g = groups.find(x => x.name === name);
-    if(!g){ g = { name, category: item.category, rank: rank[item.category] ?? 2, count: 0 }; groups.push(g); }
-    g.count++;
+/* the film types, in the order they first appear in content.js */
+function filmTypes(){
+  const types = [];
+  listWork().forEach(w => {
+    const t = (w.type || "").trim();
+    if(w.category === "films" && t && !types.includes(t)) types.push(t);
   });
-  return groups.sort((a, b) => a.rank - b.rank);
+  return types;
 }
 
+/* activeCategory is "all", "films", "edits", or "films:<type>" */
 function renderTabs(){
   const wrap = document.getElementById("tabs");
   wrap.innerHTML = "";
-  const chip = (id, label, count) => {
-    const btn = el("button", "chip", esc(label));
+  const chip = (id, label, count, extra) => {
+    const btn = el("button", "chip" + (extra ? " " + extra : ""), esc(label));
     btn.type = "button";
-    btn.setAttribute("aria-pressed", String(id === activeCategory));
+    const on = id === activeCategory || (id === "films" && activeCategory.startsWith("films:"));
+    btn.setAttribute("aria-pressed", String(on));
     btn.setAttribute("aria-label", `${label}, ${count} piece${count === 1 ? "" : "s"}`);
     btn.addEventListener("click", () => {
       if(id === activeCategory) return;
@@ -339,18 +335,24 @@ function renderTabs(){
     });
     return btn;
   };
-  wrap.appendChild(chip("all", "All", listWork().length));
-  // film types sit together under a small "Films" label
-  let lastCat = null;
-  workGroups().forEach(g => {
-    if(g.category === "films" && lastCat !== "films"){
-      wrap.appendChild(el("span", "chip-label", "Films"));
-    } else if(g.category !== "films" && lastCat === "films"){
-      wrap.appendChild(el("span", "chip-gap"));
-    }
-    lastCat = g.category;
-    wrap.appendChild(chip(g.name, g.name, g.count));
-  });
+  const work = listWork();
+  const main = el("div", "chip-row");
+  main.appendChild(chip("all", "All", work.length));
+  // films first, then edits, the same order as the grid below
+  CONTENT.categories.filter(c => c.id !== PHOTO)
+    .sort((a, b) => (a.id === "films" ? -1 : 0) - (b.id === "films" ? -1 : 0))
+    .forEach(c => main.appendChild(chip(c.id, c.label, work.filter(w => w.category === c.id).length)));
+  wrap.appendChild(main);
+
+  // picking Films opens a second row of its types
+  const types = filmTypes();
+  if(activeCategory.startsWith("films") && types.length > 1){
+    const sub = el("div", "chip-row chip-sub");
+    sub.appendChild(chip("films", "All films", work.filter(w => w.category === "films").length, "chip-small"));
+    types.forEach(t => sub.appendChild(
+      chip("films:" + t, t, work.filter(w => w.category === "films" && (w.type || "").trim() === t).length, "chip-small")));
+    wrap.appendChild(sub);
+  }
 }
 
 function actionFor(item){
@@ -363,48 +365,68 @@ function actionFor(item){
 function renderWork(){
   const reels = document.getElementById("reels");
   reels.innerHTML = "";
-  // grid order follows the filters: film types first, then edits
-  const order = workGroups().map(g => g.name);
-  const items = listWork()
-    .filter(w => activeCategory === "all" || groupOf(w) === activeCategory)
-    .sort((a, b) => order.indexOf(groupOf(a)) - order.indexOf(groupOf(b)));
-  if(!items.length){
+  const work = listWork();
+  const [cat, type] = activeCategory.split(":");
+
+  // which sections to show, in order: films first, then edits
+  const sections = CONTENT.categories
+    .filter(c => c.id !== PHOTO && (cat === "all" || c.id === cat))
+    .map(c => ({
+      label: c.label,
+      items: work.filter(w => w.category === c.id && (!type || (w.type || "").trim() === type)),
+    }))
+    .filter(s => s.items.length)
+    .sort((a, b) => (a.label === "Films" ? -1 : 0) - (b.label === "Films" ? -1 : 0));
+
+  if(!sections.length){
     reels.appendChild(el("p", "work-empty", "Nothing here yet."));
     showOnScreen(null);
     return;
   }
 
   const cards = [];
-  items.forEach((item, i) => {
-    const li = el("li", "rv");
-    li.style.setProperty("--d", `${Math.min(i, 5) * 60}ms`);
-    const btn = el("button", "clip");
-    btn.type = "button";
-    btn.setAttribute("aria-label", `${item.title}, ${groupOf(item)}, ${item.year}. ${actionFor(item)}`);
-    const thumb = el("span", "clip-thumb");
-    thumb.appendChild(pictureFor(item, 640, 360, ""));
-    btn.appendChild(thumb);
-    btn.insertAdjacentHTML("beforeend",
-      `<span class="clip-kind">${esc(groupOf(item))}<span>${esc(item.year)}</span></span>` +
-      `<span class="clip-title">${esc(item.title)}</span>`);
-    btn.addEventListener("pointerenter", () => select(item, btn));
-    btn.addEventListener("focus", () => select(item, btn));
-    btn.addEventListener("click", () => openModal(item));
-    li.appendChild(btn);
-    reels.appendChild(li);
-    cards.push(btn);
+  sections.forEach((sec, si) => {
+    const block = el("section", "reel-section");
+    // a heading per section only when more than one is showing
+    if(sections.length > 1){
+      const h = el("h3", "reel-head rv", `${esc(sec.label)}<span>${sec.items.length}</span>`);
+      block.appendChild(h);
+    }
+    const grid = el("ul", "reels");
+    sec.items.forEach((item, i) => {
+      const li = el("li", "rv");
+      li.style.setProperty("--d", `${Math.min(i, 5) * 60}ms`);
+      const btn = el("button", "clip");
+      btn.type = "button";
+      btn.setAttribute("aria-label", `${item.title}, ${groupOf(item)}, ${item.year}. ${actionFor(item)}`);
+      const thumb = el("span", "clip-thumb");
+      thumb.appendChild(pictureFor(item, 640, 360, ""));
+      btn.appendChild(thumb);
+      btn.insertAdjacentHTML("beforeend",
+        `<span class="clip-kind">${esc(groupOf(item))}<span>${esc(item.year)}</span></span>` +
+        `<span class="clip-title">${esc(item.title)}</span>`);
+      btn.addEventListener("pointerenter", () => select(item, btn));
+      btn.addEventListener("focus", () => select(item, btn));
+      btn.addEventListener("click", () => openModal(item));
+      li.appendChild(btn);
+      grid.appendChild(li);
+      cards.push({ btn, item });
+    });
+    block.appendChild(grid);
+    reels.appendChild(block);
   });
 
   function select(item, btn){
-    cards.forEach(c => c.classList.toggle("is-current", c === btn));
+    cards.forEach(c => c.btn.classList.toggle("is-current", c.btn === btn));
     showOnScreen(item);
   }
-  select(items[0], cards[0]);
+  select(cards[0].item, cards[0].btn);
   if(document.documentElement.classList.contains("is-ready")) initReveal();
 }
 
-/* the big screen: a hosted video plays silently on a loop; anything else
-   shows its cover. A new piece fades in over the last one. */
+/* the big screen: a short silent preview loops (or a video kept with the
+   site plays itself); anything else shows its cover. A new piece fades in
+   over the last one. */
 let screenItem = null;
 function showOnScreen(item){
   const media = document.getElementById("screen-media");
