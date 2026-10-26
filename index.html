@@ -3,180 +3,163 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tharun Kumar — Editor / Photographer / Filmmaker</title>
-<meta name="description" content="Portfolio of Tharun Kumar — video editor, photographer and filmmaker.">
-<meta name="theme-color" content="#07080a">
+<title>Tharun Kumar — Editor, photographer and filmmaker</title>
+<meta name="description" content="Portfolio of Tharun Kumar — video editor, photographer and filmmaker in Chennai.">
+<meta name="theme-color" content="#0b0b0d">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<script>
+  // entrances hide content until script.js shows it; if script.js never runs, show everything anyway
+  document.documentElement.classList.add("js");
+  setTimeout(function(){ if(!window.__tkReady) document.documentElement.classList.remove("js"); }, 2500);
+</script>
 </head>
 <body>
+<script src="intro.js"></script>
 
-<div class="loader" id="loader" aria-hidden="true">
-  <div class="clap">
-    <div class="clap-top"></div>
-    <div class="clap-bottom"></div>
-  </div>
-  <p class="loader-text">TK — LOADING REEL</p>
-</div>
+<a class="skip" href="#work">Skip to the work</a>
 
-<div class="grain" aria-hidden="true"></div>
+<!-- the glow and the drifting points behind everything -->
+<div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+<canvas id="field" aria-hidden="true"></canvas>
 
 <!-- ============ TOP BAR ============ -->
-<header class="topbar">
-  <!-- progressive blur: page content dissolves into blur as it scrolls under the bar -->
-  <div class="pblur pblur-top" aria-hidden="true">
-    <div></div><div></div><div></div><div></div><div></div><div></div>
-  </div>
-  <a href="#gate" class="logo" data-cursor="Top">TK<span>®</span></a>
-  <nav class="toplinks">
+<header class="bar">
+  <a href="#top" class="bar-mark" id="bar-mark" aria-label="Back to top">TK</a>
+  <nav class="bar-links" aria-label="Sections">
     <a href="#work">Work</a>
+    <a href="#photography">Photos</a>
     <a href="#about">About</a>
-    <a href="#history">Experience</a>
+    <a href="#roles" class="bar-opt">Roles</a>
     <a href="#contact">Contact</a>
   </nav>
-  <div class="topbar-right">
-    <div class="timecode" id="timecode" aria-hidden="true">00:00:00:00</div>
-    <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="menu" data-cursor="Menu">
-      <span></span><span></span>
-    </button>
-  </div>
 </header>
 
-<!-- ============ MOBILE MENU ============ -->
-<div class="menu" id="menu" aria-hidden="true">
-  <nav class="menu-links">
-    <a href="#work">Work</a>
-    <a href="#about">About</a>
-    <a href="#history">Experience</a>
-    <a href="#contact">Contact</a>
-  </nav>
-</div>
+<main>
 
-<!-- ============ GATE / LANDING ============ -->
-<section id="gate" class="gate">
-  <div class="rays" aria-hidden="true">
-    <span class="ray-beam"></span>
-    <span class="ray-bloom"></span>
+<!-- ============ HERO: the name as a title card ============ -->
+<section id="top" class="hero">
+  <div class="hero-text rv">
+    <p class="hero-role" id="hero-role"><!-- content.role --></p>
+    <blockquote class="hero-blurb">
+      <p id="hero-blurb"><!-- content.hero.blurb --></p>
+      <cite id="hero-blurb-by"><!-- content.hero.blurbBy --></cite>
+    </blockquote>
+    <a class="btn" href="#work">See the work</a>
   </div>
-  <div class="hero-blooms" aria-hidden="true"></div>
 
-  <!-- arc of work thumbnails behind the wordmark; built by script.js -->
-  <!-- three nested layers on purpose: CSS scales the outer one per breakpoint,
-       GSAP drives scroll parallax on the middle and mouse parallax on the
-       inner, so no two things ever fight over the same transform -->
-  <div class="collage" aria-hidden="true">
-    <div class="collage-scroll">
-      <div class="collage-inner" id="collage"></div>
+  <figure class="hero-frame rv" style="--d:90ms">
+    <!-- your photos, built out of particles by particles.js -->
+    <div class="hero-stage" id="hero-stage" role="button" tabindex="0" aria-label="Show the next photo">
+      <canvas id="hero-particles" aria-hidden="true"></canvas>
+    </div>
+    <button class="sound-btn" id="sound-toggle" type="button" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      <span class="sound-label">React to sound</span>
+    </button>
+  </figure>
+
+  <div class="hero-side rv" style="--d:180ms">
+    <dl class="hero-slate" id="slate"><!-- content.hero.slate --></dl>
+    <dl class="hero-slate hero-now">
+      <div><dt>On screen</dt><dd id="hero-caption-title"></dd></div>
+      <div aria-hidden="true"><dt>Timecode</dt><dd class="tc" id="timecode">00:00:00:00</dd></div>
+    </dl>
+  </div>
+
+  <h1 class="name" id="name">
+    <span class="name-line"><span class="name-inner">Tharun Kumar</span></span>
+  </h1>
+</section>
+
+<!-- ============ WORK: a screen, and the work in labelled rows ============ -->
+<section id="work" class="work" aria-labelledby="work-title">
+  <div class="work-head">
+    <h2 class="work-title rv" id="work-title">Work</h2>
+    <div class="work-filter rv" style="--d:80ms" role="group" aria-label="Filter work" id="tabs"><!-- content.categories --></div>
+  </div>
+
+  <div class="screen-wrap rv" style="--d:120ms">
+    <button class="screen" id="screen" type="button">
+      <span class="screen-media" id="screen-media"></span>
+      <span class="screen-play" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>
+      </span>
+    </button>
+    <div class="screen-info" id="screen-info" aria-live="polite"></div>
+  </div>
+
+  <div class="reel-sections" id="reels"><!-- content.work: films, then edits --></div>
+</section>
+
+<!-- ============ PHOTOGRAPHY: albums as stacks of prints ============ -->
+<section id="photography" class="photos" aria-labelledby="photos-title">
+  <div class="photos-head">
+    <h2 class="photos-title rv" id="photos-title">Photography</h2>
+    <div class="photos-nav rv" style="--d:140ms">
+      <button class="icon-btn" id="photos-prev" type="button" aria-label="Previous albums">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <button class="icon-btn" id="photos-next" type="button" aria-label="Next albums">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
     </div>
   </div>
+  <ul class="photos-row" id="photos-row"><!-- photography albums from content.work --></ul>
+</section>
 
-  <div class="gate-inner">
-    <div class="slate glass" id="slate"><!-- populated by script.js from content.hero.slate --></div>
-
-    <h1 class="wordmark" id="gate-name">Tharun Kumar</h1>
-
-    <p class="gate-role" id="gate-role"><!-- populated by script.js --></p>
-
-    <div class="gate-blurb-wrap">
-      <div class="pblur pblur-blurb" aria-hidden="true">
-        <div></div><div></div><div></div><div></div>
+<!-- ============ ABOUT: the portrait in halftone under a lens, the story beside it ============ -->
+<section id="about" class="about" aria-labelledby="about-title">
+  <figure class="portrait-wrap rv">
+    <!-- your photo printed as dots; portrait.js puts a lens over it that follows the cursor -->
+    <div class="portrait-stage" id="portrait-stage" role="button" tabindex="0" aria-label="Portrait">
+      <canvas id="portrait-particles" aria-hidden="true"></canvas>
+    </div>
+    <figcaption class="portrait-credit" id="portrait-credit"></figcaption>
+  </figure>
+  <div class="about-body">
+    <h2 class="about-title rv" id="about-title">About</h2>
+    <p class="about-lead rv" id="about-lead" style="--d:80ms"></p>
+    <div class="about-more rv" id="about-more" style="--d:140ms"></div>
+    <div class="about-facts rv" style="--d:200ms">
+      <dl class="stats" id="stats"><!-- content.stats --></dl>
+      <div class="kit">
+        <h3>Kit</h3>
+        <ul id="kit"><!-- content.about.kit --></ul>
       </div>
-      <p class="gate-blurb" id="gate-blurb"><!-- populated by script.js --></p>
     </div>
-
-    <p class="gate-question">Load a reel —</p>
-    <div class="reel-select" id="reel-select">
-      <!-- populated by script.js from content.categories -->
-    </div>
-  </div>
-
-  <div class="scroll-cue" aria-hidden="true"><span></span></div>
-</section>
-
-<!-- ============ TICKER ============ -->
-<div class="ticker" aria-hidden="true">
-  <div class="ticker-track" id="ticker"><!-- populated by script.js --></div>
-</div>
-
-<!-- ============ WORK ============ -->
-<section id="work" class="work">
-  <div class="section-head reveal">
-    <div>
-      <p class="section-index">01 — The Reel</p>
-      <h2>Selected Work</h2>
-    </div>
-    <div class="tabs" id="tabs"><!-- populated by script.js --></div>
-  </div>
-  <div class="grid" id="work-grid"><!-- populated by script.js --></div>
-</section>
-
-<!-- ============ ABOUT (bento) ============ -->
-<section id="about" class="about">
-  <div class="section-head reveal">
-    <div>
-      <p class="section-index">02 — About</p>
-      <h2>Behind the cut</h2>
-    </div>
-  </div>
-
-  <div class="bento">
-    <article class="bento-tile tile-portrait reveal">
-      <div class="portrait-frame" id="portrait"><span>PORTRAIT</span></div>
-      <div class="sprocket left" aria-hidden="true"></div>
-      <div class="sprocket right" aria-hidden="true"></div>
-      <div class="portrait-caption glass" id="portrait-caption"><!-- populated by script.js --></div>
-    </article>
-
-    <article class="bento-tile tile-bio glass reveal" style="--d:0.08s">
-      <h3 class="tile-label">Bio</h3>
-      <div id="about-text" class="about-text"><!-- populated by script.js --></div>
-    </article>
-
-    <article class="bento-tile tile-kit glass reveal" style="--d:0.16s">
-      <h3 class="tile-label">Kit &amp; Tools</h3>
-      <div class="marquee-wrap">
-        <div class="chips" id="kit-chips"><!-- populated by script.js --></div>
-      </div>
-    </article>
-
-    <article class="bento-tile tile-stats glass reveal" id="stats" style="--d:0.24s">
-      <h3 class="tile-label">By the numbers</h3>
-      <div class="stats-track" id="stats-grid"><!-- populated by script.js from content.stats --></div>
-    </article>
   </div>
 </section>
 
-<!-- ============ EXPERIENCE ============ -->
-<section id="history" class="history">
-  <div class="section-head reveal">
-    <div>
-      <p class="section-index">03 — Timeline</p>
-      <h2>Experience</h2>
-      <p class="section-sub">A timeline, not a résumé.</p>
-    </div>
+<!-- ============ ROLES: giant word, filled bars ============ -->
+<section id="roles" class="credits" aria-labelledby="credits-title">
+  <div class="credits-col">
+    <h2 class="credits-word rv" id="credits-title"><span id="credits-word">Roles</span></h2>
+    <div class="credits-list" id="timeline"><!-- content.history --></div>
   </div>
-  <div class="timeline" id="timeline"><!-- populated by script.js --></div>
 </section>
 
-<!-- ============ CONTACT ============ -->
+</main>
+
+<!-- ============ CONTACT: the email as display type ============ -->
 <footer id="contact" class="contact">
-  <div class="rays contact-rays" aria-hidden="true">
-    <span class="ray-beam"></span>
-    <span class="ray-bloom"></span>
+  <h2 class="contact-ask rv">Have a project in mind?</h2>
+  <p class="contact-mail"><a class="contact-email" id="contact-email" href="#"></a></p>
+  <div class="contact-foot">
+    <p id="contact-where"></p>
+    <ul class="socials" id="socials"><!-- content.contact.socials --></ul>
   </div>
-  <p class="section-index reveal">04 — Contact</p>
-  <h2 class="reveal">Let's make something.</h2>
-  <a class="contact-email reveal" id="contact-email" href="#" style="--d:0.1s" data-cursor="Mail"></a>
-  <div class="socials reveal" id="socials" style="--d:0.2s"><!-- populated by script.js --></div>
-  <p class="fine-print">© <span id="year"></span> Tharun Kumar. Built frame by frame.</p>
+  <p class="fine">© <span id="year"></span> <span id="fine-name">Tharun Kumar</span>. Cut frame by frame.</p>
 </footer>
 
-<!-- ============ PROJECT MODAL ============ -->
+<!-- ============ PROJECT VIEWER ============ -->
 <div class="modal" id="modal" aria-hidden="true">
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <button class="modal-close" id="modal-close" aria-label="Close" data-cursor="Close">✕</button>
+    <button class="icon-btn modal-close" id="modal-close" aria-label="Close">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
 
     <!-- edits / films: a single video or still -->
     <div id="modal-single">
@@ -192,30 +175,38 @@
     <div id="modal-album" style="display:none">
       <div class="album-stage" id="album-stage">
         <div class="album-main" id="album-main"></div>
-        <button class="album-arrow prev" id="album-prev" aria-label="Previous photo" data-cursor="Prev">‹</button>
-        <button class="album-arrow next" id="album-next" aria-label="Next photo" data-cursor="Next">›</button>
+        <button class="icon-btn album-arrow prev" id="album-prev" aria-label="Previous photo">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <button class="icon-btn album-arrow next" id="album-next" aria-label="Next photo">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
         <div class="album-progress" aria-hidden="true"><span id="album-bar"></span></div>
       </div>
       <div class="album-nav">
-        <button id="album-toggle" class="album-toggle" aria-label="Pause slideshow" data-cursor="Pause">
-          <span class="ico-pause"></span>
+        <button id="album-toggle" class="album-toggle" aria-label="Pause slideshow">
+          <svg class="ico-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
+          <svg class="ico-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg>
         </button>
         <span id="album-count"></span>
+        <span class="album-caption" id="album-caption"></span>
       </div>
       <div class="album-thumbs" id="album-thumbs"></div>
     </div>
 
-    <p class="modal-cat" id="modal-cat"></p>
-    <h3 id="modal-title"></h3>
-    <p class="modal-meta" id="modal-meta"></p>
-    <p id="modal-desc"></p>
-    <a id="modal-link" href="#" target="_blank" rel="noopener" data-cursor="Open">View project ↗</a>
+    <div class="modal-text">
+      <h3 id="modal-title"></h3>
+      <p class="modal-meta" id="modal-meta"></p>
+      <p class="modal-desc" id="modal-desc"></p>
+      <a class="btn" id="modal-link" href="#" target="_blank" rel="noopener">View project</a>
+    </div>
   </div>
 </div>
 
-<script src="assets/vendor/gsap.min.js"></script>
-<script src="assets/vendor/ScrollTrigger.min.js"></script>
 <script src="content.js"></script>
 <script src="script.js"></script>
+<script src="particles.js"></script>
+<script src="portrait.js"></script>
+<script src="cursor.js"></script>
 </body>
 </html>
