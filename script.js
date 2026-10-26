@@ -183,7 +183,7 @@ function pictureFor(item, w, h, alt){
 
 /* ============================================================
    FIT TEXT
-   The name, the email and the credits word are set to fill their
+   The name, the email and the "Roles" word are set to fill their
    width exactly, whatever the words are.
    ============================================================ */
 function fitLines(container, lines, maxPx){
@@ -780,17 +780,23 @@ function initStatsCountUp(){
   io.observe(section);
 }
 
-/* ---------- CREDITS ---------- */
+/* ---------- ROLES ---------- */
 function renderHistory(){
   const wrap = document.getElementById("timeline");
   wrap.innerHTML = "";
   CONTENT.history.forEach((h, i) => {
-    const item = el("details", "credit rv");
+    // a role with a description opens and closes; one without is a plain row
+    const hasBody = !!(h.body && h.body.trim());
+    const item = el(hasBody ? "details" : "div", "credit rv" + (hasBody ? "" : " credit-static"));
     item.style.setProperty("--d", `${i * 70}ms`);
     if(i === 0) item.open = true;
     item.innerHTML = `
-      <summary><span class="credit-time">${esc(h.time)}</span><span>${esc(h.title)}</span><span class="plus" aria-hidden="true"></span></summary>
-      <p class="credit-body">${esc(h.body)}</p>`;
+      <${hasBody ? "summary" : "div"} class="credit-row">
+        <span class="credit-time">${esc(h.time)}</span>
+        <span class="credit-role"><span class="credit-title">${esc(h.title)}</span>${h.org ? `<span class="credit-org">${esc(h.org)}</span>` : ""}</span>
+        ${hasBody ? `<span class="plus" aria-hidden="true"></span>` : ""}
+      </${hasBody ? "summary" : "div"}>
+      ${hasBody ? `<p class="credit-body">${esc(h.body)}</p>` : ""}`;
     wrap.appendChild(item);
   });
 }

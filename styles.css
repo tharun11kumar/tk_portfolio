@@ -618,8 +618,8 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
 .about-more p{ break-inside: avoid; margin-bottom: 1em; }
 .about-caption{ margin-top: 16px; color: var(--muted); font-size: var(--step-small); }
 
-/* ============ CREDITS ============ */
-/* credits sit on a full field of the gradient, in dark ink */
+/* ============ ROLES ============ */
+/* roles sit on a full field of the gradient, in dark ink */
 .credits{
   position: relative;
   background: var(--grad);
@@ -646,20 +646,22 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
 }
 .credits-list{ display: grid; gap: 6px; }
 .credit{ background: rgba(11, 11, 13, 0.14); }
-.credit summary{
+.credit-row{
   min-height: 56px;
   padding: 14px 18px;
   display: grid;
-  grid-template-columns: 4.2em 1fr 20px;
+  grid-template-columns: 7.5em 1fr 20px;
   align-items: center;
   gap: 12px;
-  cursor: pointer;
   list-style: none;
   font-weight: 600;
   transition: background-color 160ms ease;
 }
 .credit summary::-webkit-details-marker{ display: none; }
-.credit summary:hover{ background: rgba(11, 11, 13, 0.1); }
+.credit-role{ display: grid; gap: 2px; }
+.credit-org{ font-weight: 400; }
+details.credit summary{ cursor: pointer; }
+details.credit summary:hover{ background: rgba(11, 11, 13, 0.1); }
 .credit-time{ font-variant-numeric: tabular-nums; font-weight: 400; }
 .plus{ position: relative; width: 14px; height: 14px; justify-self: end; }
 .plus::before,
@@ -673,7 +675,7 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
 }
 .plus::after{ transform: rotate(90deg); }
 .credit[open] .plus::after{ transform: rotate(0deg); }
-.credit-body{ padding: 0 18px 20px calc(18px + 4.2em + 12px); max-width: 60ch; }
+.credit-body{ padding: 0 18px 20px calc(18px + 7.5em + 12px); max-width: 60ch; }
 
 /* ============ CONTACT ============ */
 .contact{
@@ -924,7 +926,8 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   .portrait{ width: 4.6em; height: 4.6em; }
   .about-more{ columns: 1; margin-top: 32px; }
 
-  .credit summary{ grid-template-columns: 3.4em 1fr 18px; padding: 14px 16px; }
+  .credit-row{ grid-template-columns: 1fr 18px; padding: 14px 16px; row-gap: 2px; }
+  .credit-time{ grid-column: 1 / -1; font-size: var(--step-small); }
   .credit-body{ padding: 0 16px 18px; }
 
   .contact{ min-height: 72svh; }

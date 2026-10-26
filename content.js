@@ -267,23 +267,16 @@ const CONTENT = {
     },
   ],
 
-  // Career / experience timeline. Sorted top to bottom as you list them.
+  // Roles and positions, shown in the "Roles" section.
   history: [
-    {
-      time: "2026",
-      title: "Core Team, Film Society — VIT Chennai",
-      body: "Leading the technical side of the club: planning a two-day event built around a 48-hour film challenge, running recruitment, and mentoring newer editors.",
-    },
-    {
-      time: "2026",
-      title: "Built a beat-detection auto-cut extension",
-      body: "Wrote a Premiere Pro (CEP) extension that analyses a track's beat and automatically slices the timeline — a small tool that grew out of editing too many recap videos by hand.",
-    },
-    {
-      time: "—",
-      title: "Add your next chapter",
-      body: "Duplicate this block for every gig, internship, or project worth listing — freelance edits, client shoots, film credits.",
-    },
+    // Each role: the years, your position, the organisation, and an optional
+    // "body" with a line or two about it (leave it "" and the row just lists
+    // the role). Listed top to bottom in the order you write them.
+    { time: "2026 – Present", title: "President", org: "VITC Film Society", body: "" },
+    { time: "2025", title: "Chargé d’Affaires", org: "VITC IntraMUN", body: "" },
+    { time: "2025", title: "USG Visual Media", org: "VITCMUN", body: "" },
+    { time: "2024 – 2025", title: "Joint Secretary", org: "Arignar Anna Thamizh Mandram, VIT Chennai", body: "" },
+    { time: "2024", title: "USG Visual Media", org: "VITC IntraMUN", body: "" },
   ],
 
   about: {

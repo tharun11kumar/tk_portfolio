@@ -4,7 +4,7 @@ A dark single-page portfolio built like a title card: your name set huge
 across the first screen in a warm moving gradient, your photos rebuilt out of
 particles that scatter away from the cursor (and, if a visitor switches it
 on, react to sound), then your work as big names passing a held frame, an
-about section, your credits on a gradient field, and your email as the
+about section, your roles on a gradient field, and your email as the
 closing line.
 
 No build step — plain HTML/CSS/JS. That means **anyone can edit it in a
@@ -246,7 +246,7 @@ Put your own media anywhere you like under `assets/` — e.g.
 - **Your photography** lives in `assets/photos/`, exported at up to 2560px
   on the long side. Add more by dropping files in a folder there and listing
   them in an album's `images`.
-- Your name, the "Credits" word and your email are sized automatically to
+- Your name, the "Roles" word and your email are sized automatically to
   fill the width. Set `wordmark` if you'd rather the first screen show
   something shorter.
 - **Everything respects "reduce motion".** With it switched on, the particle
