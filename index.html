@@ -109,23 +109,25 @@
   <ul class="photos-row" id="photos-row"><!-- photography albums from content.work --></ul>
 </section>
 
-<!-- ============ ABOUT: portrait as drop cap ============ -->
+<!-- ============ ABOUT: the portrait shedding dust, the story beside it ============ -->
 <section id="about" class="about" aria-labelledby="about-title">
-  <aside class="about-facts">
-    <h2 class="about-title rv" id="about-title">About</h2>
-    <dl class="stats rv" id="stats" style="--d:80ms"><!-- content.stats --></dl>
-    <div class="kit rv" style="--d:160ms">
-      <h3>Kit</h3>
-      <ul id="kit"><!-- content.about.kit --></ul>
+  <figure class="portrait-wrap rv">
+    <!-- you, cut out on black; particles.js makes the outline drift away as dust -->
+    <div class="portrait-stage" id="portrait-stage" role="button" tabindex="0" aria-label="Scatter the portrait">
+      <canvas id="portrait-particles" aria-hidden="true"></canvas>
     </div>
-  </aside>
+  </figure>
   <div class="about-body">
-    <p class="about-lead rv">
-      <span class="portrait" id="portrait"><span class="portrait-empty">TK</span></span>
-      <span id="about-lead"></span>
-    </p>
-    <div class="about-more rv" id="about-more" style="--d:90ms"></div>
-    <p class="about-caption rv" id="portrait-caption" style="--d:160ms"></p>
+    <h2 class="about-title rv" id="about-title">About</h2>
+    <p class="about-lead rv" id="about-lead" style="--d:80ms"></p>
+    <div class="about-more rv" id="about-more" style="--d:140ms"></div>
+    <div class="about-facts rv" style="--d:200ms">
+      <dl class="stats" id="stats"><!-- content.stats --></dl>
+      <div class="kit">
+        <h3>Kit</h3>
+        <ul id="kit"><!-- content.about.kit --></ul>
+      </div>
+    </div>
   </div>
 </section>
 

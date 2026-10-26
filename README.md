@@ -180,18 +180,19 @@ just a `{ label, value }` pair. `slate` and `stats` can each have as many or
 as few entries as you want — the layout adjusts automatically. Numbers in
 `stats` count up the first time a visitor scrolls to them.
 
-### 7. Adding your portrait photo
-Upload your photo to the repo (e.g. `assets/portrait.jpg`) the same way you
-upload album photos, then point `about.portrait` at it:
+### 7. Your portrait
+The About section shows `about.portrait` as a cut-out on black whose outline
+keeps drifting away as dust; where the cursor touches it, it breaks into
+pixels, and clicking scatters it and puts it back together. Use a picture with
+the background already removed (a PNG or WebP with transparency), e.g.
+`assets/portrait.webp`:
 ```js
 about: {
-  portrait: "assets/portrait.jpg",
-  caption: "Usually mid color-grade.",
+  portrait: "assets/portrait.webp",
   ...
 }
 ```
-Leave it `null` and the About section keeps its empty "PORTRAIT" frame. If
-the path is wrong the frame stays as-is rather than showing a broken image.
+Set it to `null` to hide the portrait.
 
 ### 8. Shortening the giant wordmark (optional)
 The landing screen sets your `name` in huge type, broken onto two lines. If
@@ -267,6 +268,10 @@ Put your own media anywhere you like under `assets/` — e.g.
   stack of prints in a row you can scroll, swipe or drag sideways. Pointing
   at a stack fans the prints out and leafs through the album; clicking opens
   the slideshow. The Work list above it covers edits and films.
+- **Movie edits** can carry `fandom: true`, which puts "(FANDOM EDIT)" next
+  to the title on the card, the screen and the player.
+- **The Work screen plays every preview in turn**: when one ends the next
+  piece takes over, through the films and then the edits.
 - **Your photography** lives in `assets/photos/`, exported at up to 2560px
   on the long side. Add more by dropping files in a folder there and listing
   them in an album's `images`.

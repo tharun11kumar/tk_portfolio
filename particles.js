@@ -1,8 +1,9 @@
 /* ============================================================
    PARTICLES — the moving layer of the site.
-   - The hero builds your photos out of particles. They scatter
-     away from the cursor (or a finger) and drift back, and every
-     few seconds they re-form into the next photo.
+   - The hero shows your photos; where the cursor (or a finger)
+     touches, the picture breaks into pixels that drift back, and
+     every few seconds a ripple carries it to the next photo.
+   - The About portrait sheds a constant dust off its outline.
    - A light field of drifting points sits behind the whole page
      and also gets out of the cursor's way.
    - "React to sound" listens to the microphone (nothing is
@@ -105,40 +106,43 @@
   }
 
   /* ============================================================
-     HERO — a photo that turns to pixels only when it moves
-     At rest the hero shows the real photo at full resolution. Each
-     cell of a fine grid over it is also a particle: when the cursor
-     pushes a cell, or the ripple of a photo change reaches it, that
-     cell lifts out of the photo as a coloured pixel, moves, and drops
-     back into the picture once it has settled. Loose pixels in the
-     photo's own colours drift around its faded edges and corners.
-     Every photo fades to nothing toward its edges, so there is never
-     a hard frame.
+     PIXEL STAGES — a picture that turns to pixels only when it moves
+     Used twice: the hero (your photos, one after another) and the
+     About portrait (you, cut out on black).
+     At rest the stage shows the real picture at full resolution.
+     Each cell of a fine grid over it is also a particle: when the
+     cursor pushes a cell, or the ripple of a change reaches it, that
+     cell lifts out of the picture as a coloured pixel, moves, and
+     drops back once it has settled.
+     The hero adds loose pixels drifting around its faded edges and
+     corners; the portrait sheds a constant dust off its outline.
      ============================================================ */
   function smooth(t){ t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); }
   // the oval fade: full strength in the middle, exactly nothing a little inside every edge
   function vignette(nx, ny){ return smooth((0.96 - Math.sqrt(nx * nx * 0.96 + ny * ny)) / 0.7); }
 
-  // the photo, cover-fitted to the stage and faded at its edges, at full resolution
-  function buildLayer(img, w, h){
+  // the picture fitted to the stage at full resolution (cover or contain),
+  // faded at its edges for the hero; a cut-out keeps its own transparency
+  function buildLayer(img, w, h, fit, fade){
     const c = document.createElement("canvas");
     c.width = w; c.height = h;
     const g = c.getContext("2d", { willReadFrequently: true });
     g.imageSmoothingQuality = "high";
-    const s = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+    const s = (fit === "contain" ? Math.min : Math.max)(w / img.naturalWidth, h / img.naturalHeight);
     const dw = img.naturalWidth * s, dh = img.naturalHeight * s;
-    g.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
-    const d = g.getImageData(0, 0, w, h);
-    const px = d.data;
-    for(let y = 0; y < h; y++){
-      const ny = (y + 0.5) / h * 2 - 1;
-      for(let x = 0; x < w; x++){
-        const nx = (x + 0.5) / w * 2 - 1;
-        const i = (y * w + x) * 4 + 3;
-        px[i] = px[i] * vignette(nx, ny);
+    g.drawImage(img, (w - dw) / 2, fit === "contain" ? h - dh : (h - dh) / 2, dw, dh);
+    if(fade){
+      const d = g.getImageData(0, 0, w, h);
+      const px = d.data;
+      for(let y = 0; y < h; y++){
+        const ny = (y + 0.5) / h * 2 - 1;
+        for(let x = 0; x < w; x++){
+          const i = (y * w + x) * 4 + 3;
+          px[i] = px[i] * vignette((x + 0.5) / w * 2 - 1, ny);
+        }
       }
+      g.putImageData(d, 0, 0);
     }
-    g.putImageData(d, 0, 0);
     return c;
   }
 
@@ -159,31 +163,14 @@
     return { r, g: gg, b, al };
   }
 
-  function initHero(){
-    const stage = document.getElementById("hero-stage");
-    const canvas = document.getElementById("hero-particles");
-    if(!stage || !canvas) return;
-    const sources = (window.TK_HERO_PHOTOS || []).filter(p => p && p.src);
-    const caption = document.getElementById("hero-caption-title");
-    if(!sources.length) return;
-
-    if(reduced){
-      // a still photo in place of the particles
-      const img = new Image();
-      img.src = sources[0].src;
-      img.alt = sources[0].title || "";
-      img.className = "hero-still";
-      stage.appendChild(img);
-      canvas.remove();
-      if(caption) caption.textContent = sources[0].title || "";
-      return;
-    }
-
+  function pixelStage(cfg){
+    const { stage, canvas, sources, caption } = cfg;
+    const fit = cfg.fit || "cover";
     const g = canvas.getContext("2d");
-    // grid-sized buffers: moving pixels, and which cells show the new or the old photo
+    // grid-sized buffers: moving pixels, and which cells show the new or the old picture
     const mk = () => { const c = document.createElement("canvas"); return { c, g: c.getContext("2d") }; };
     const bMove = mk(), bNew = mk(), bOld = mk();
-    // stage-sized scratch canvases for cutting a photo to the cells that are at rest
+    // stage-sized scratch canvases for cutting a picture to the cells that are at rest
     const offA = mk(), offB = mk();
     let W = 0, H = 0, rect = null, step = 3, gw = 1, gh = 1;
     let pMove, pNew, pOld, uMove, uNew, uOld;
@@ -194,16 +181,17 @@
     // particle state: particle i always belongs to grid cell i
     let N = 0;
     let X, Y, VX, VY, HX, HY, CR, CG, CB, A, TR, TG, TB, TA, WAIT, NEW;
-    let NR, NG, NB, NA;   // the next photo, held until the ripple reaches each particle
+    let NR, NG, NB, NA;   // the next picture, held until the ripple reaches each particle
 
-    // loose pixels drifting around the faded edges and corners
-    let floaters = [];
+    let floaters = [];    // hero: loose pixels drifting around the faded edges and corners
+    let edges = [];       // portrait: the outline cells, with the way out of the figure
+    let dust = [];        // portrait: specks breaking off the outline
 
     function size(){
       rect = stage.getBoundingClientRect();
       W = Math.max(1, Math.round(rect.width));
       H = Math.max(1, Math.round(rect.height));
-      const target = fine ? 36000 : 15000;
+      const target = (fine ? 36000 : 15000) * (cfg.density || 1);
       step = Math.max(2, Math.ceil(Math.sqrt((W * H) / target)));
       gw = Math.ceil(W / step); gh = Math.ceil(H / step);
       for(const b of [bMove, bNew, bOld]){ b.c.width = gw; b.c.height = gh; }
@@ -223,11 +211,12 @@
       for(let i = 0; i < N; i++){
         HX[i] = (i % gw + 0.5) * step;
         HY[i] = (((i / gw) | 0) + 0.5) * step;
-        // the first photo assembles out of a scattered cloud, like it is being developed
+        // the first picture assembles out of a scattered cloud, like it is being developed
         X[i] = Math.random() * W; Y[i] = Math.random() * H;
         WAIT[i] = -1;
       }
-      makeFloaters();
+      if(cfg.ring) makeFloaters();
+      dust = [];
     }
 
     function makeFloaters(){
@@ -248,6 +237,22 @@
       });
     }
 
+    // the outline of a cut-out: solid cells with an empty neighbour, and which way is out
+    function findEdges(s){
+      edges = [];
+      const at = (x, y) => (x < 0 || y < 0 || x >= gw || y >= gh) ? 0 : s.al[y * gw + x];
+      for(let y = 0; y < gh; y++){
+        for(let x = 0; x < gw; x++){
+          const a = at(x, y);
+          if(a < 0.35) continue;
+          if(at(x - 1, y) > 0.15 && at(x + 1, y) > 0.15 && at(x, y - 1) > 0.15 && at(x, y + 1) > 0.15) continue;
+          let nx = at(x - 1, y) - at(x + 1, y), ny = at(x, y - 1) - at(x, y + 1);
+          const l = Math.hypot(nx, ny) || 1;
+          edges.push({ i: y * gw + x, x: (x + 0.5) * step, y: (y + 0.5) * step, nx: nx / l, ny: ny / l });
+        }
+      }
+    }
+
     // ox, oy: where the ripple starts (the click, or the middle)
     function form(index, ox, oy, instant){
       const img = images[index];
@@ -257,10 +262,10 @@
       }
       current = index;
       if(caption) caption.textContent = sources[index].title || "";
-      const layer = buildLayer(img, W, H);
+      const layer = buildLayer(img, W, H, fit, cfg.vignette);
       const s = sampleLayer(layer, gw, gh);
-      if(instant || !newLayer){ oldLayer = null; }
-      else { oldLayer = newLayer; }
+      if(cfg.dust) findEdges(s);
+      oldLayer = (instant || !newLayer) ? null : newLayer;
       newLayer = layer;
       if(ox == null){ ox = W / 2; oy = H / 2; }
       // the ripple crosses the whole stage in about 0.9 seconds
@@ -281,10 +286,10 @@
     }
     let rippleX = 0, rippleY = 0, rippleReach = 1, morphing = false;
 
-    let visible = true, raf = null, last = performance.now(), sinceSwap = 0, clock = 0;
+    let visible = true, raf = null, last = performance.now(), sinceSwap = 0;
     const HOLD = 6500;
 
-    // cut a photo down to the cells marked in a grid mask, then lay it on the stage
+    // cut a picture down to the cells marked in a grid mask, then lay it on the stage
     function drawMasked(off, maskCanvas, layer){
       const o = off.g;
       o.globalCompositeOperation = "copy";
@@ -299,13 +304,13 @@
     function tick(now){
       raf = null;
       if(!visible) return;
-      // the first photo is still loading
+      // the first picture is still loading
       if(!newLayer){ last = now; raf = requestAnimationFrame(tick); return; }
-      const ms = Math.min(48, now - last); last = now; clock += ms;
+      const ms = Math.min(48, now - last); last = now;
       const dt = ms / 16.67;
       readSound();
       sinceSwap += ms;
-      if(sinceSwap > HOLD && images.length > 1 && !pointerOnStage()){
+      if(cfg.cycle && sinceSwap > HOLD && images.length > 1 && !pointerOnStage()){
         sinceSwap = 0;
         form((current + 1) % images.length);
       }
@@ -334,6 +339,8 @@
             VY[i] += (dy / d) * kick + (Math.random() - 0.5) * 2.5 - 1.2;
           }
         }
+        // empty cells of a cut-out have nothing to show; skip their physics
+        if(TA[i] < 0.01 && A[i] < 0.01 && WAIT[i] < 0){ continue; }
         let ax = (HX[i] - X[i]) * 0.055, ay = (HY[i] - Y[i]) * 0.055;
         if(push){
           const dx = X[i] - mx, dy = Y[i] - my, d2 = dx * dx + dy * dy;
@@ -380,7 +387,7 @@
 
       g.clearRect(0, 0, W, H);
       if(!moving && !restingOld){
-        // everything at rest: the real photo, untouched
+        // everything at rest: the real picture, untouched
         g.drawImage(newLayer, 0, 0, W, H);
       } else {
         if(restingOld && oldLayer){ bOld.g.putImageData(pOld, 0, 0); drawMasked(offA, bOld.c, oldLayer); }
@@ -389,7 +396,8 @@
         g.imageSmoothingEnabled = false;
         g.drawImage(bMove.c, 0, 0, gw * step, gh * step);
       }
-      drawFloaters(dt, push, mx, my);
+      if(cfg.ring) drawFloaters(dt, push, mx, my);
+      if(cfg.dust) drawDust(ms, dt, push, mx, my);
       raf = requestAnimationFrame(tick);
     }
 
@@ -410,7 +418,7 @@
         f.ox += f.vx * dt; f.oy += f.vy * dt;
         x += f.ox; y += f.oy;
         if(x < 0 || y < 0 || x >= W || y >= H) continue;
-        // coloured from the photo underneath, a little brighter
+        // coloured from the picture underneath, a little brighter
         const ci = Math.min(N - 1, ((y / step) | 0) * gw + ((x / step) | 0));
         const lift = 40 + sound.level * 120;
         const r0 = Math.min(255, TR[ci] + lift) | 0, g0 = Math.min(255, TG[ci] + lift) | 0, b0 = Math.min(255, TB[ci] + lift) | 0;
@@ -419,6 +427,64 @@
         const s = f.size * (1 + sound.bass * 0.8);
         g.fillRect(Math.round(x / step) * step, Math.round(y / step) * step, s, s);
       }
+    }
+
+    // specks breaking off the outline and drifting away on a slow, turning wind
+    let dustClock = 0;
+    function drawDust(ms, dt, push, mx, my){
+      if(!edges.length) return;
+      dustClock += ms;
+      const cap = fine ? 1100 : 450;
+      // a steady shedding all round, much stronger near the cursor or with sound
+      let spawn = (fine ? 2.2 : 1.1) * dt * (1 + sound.level * 6);
+      while(spawn > 0 && dust.length < cap){
+        if(spawn < 1 && Math.random() > spawn) break;
+        spawn -= 1;
+        emit(edges[(Math.random() * edges.length) | 0], 1);
+      }
+      if(push){
+        let near = 0;
+        for(let k = 0; k < 40 && near < 6 * dt; k++){
+          const e = edges[(Math.random() * edges.length) | 0];
+          const dx = e.x - mx, dy = e.y - my;
+          if(dx * dx + dy * dy < 140 * 140){ emit(e, 2.2); near++; }
+        }
+      }
+      const wind = Math.sin(dustClock * 0.00035) * 0.25;
+      const alive = [];
+      for(const p of dust){
+        p.life -= ms;
+        if(p.life <= 0) continue;
+        // a curling drift, up and out, like ash leaving a fire
+        p.vx += (Math.sin(p.y * 0.018 + dustClock * 0.0012 + p.seed) * 0.03 + wind * 0.02) * dt;
+        p.vy += (-0.012 + Math.cos(p.x * 0.015 + dustClock * 0.001 + p.seed) * 0.02) * dt;
+        if(push){
+          const dx = p.x - mx, dy = p.y - my, d2 = dx * dx + dy * dy;
+          if(d2 < 100 * 100){ const d = Math.sqrt(d2) || 1, k = (1 - d / 100) * 0.6; p.vx += dx / d * k; p.vy += dy / d * k; }
+        }
+        p.vx *= Math.pow(0.985, dt); p.vy *= Math.pow(0.985, dt);
+        p.x += p.vx * dt; p.y += p.vy * dt;
+        const t = p.life / p.max;
+        const a = Math.min(1, t * 1.6) * p.a;
+        g.fillStyle = `rgba(${p.r},${p.g},${p.b},${a.toFixed(3)})`;
+        g.fillRect(Math.round(p.x / step) * step, Math.round(p.y / step) * step, p.size, p.size);
+        alive.push(p);
+      }
+      dust = alive;
+    }
+    function emit(e, force){
+      const i = e.i;
+      const lift = 30 + sound.level * 100;
+      dust.push({
+        x: e.x, y: e.y,
+        vx: (e.nx * (0.4 + Math.random() * 0.9) + (Math.random() - 0.5) * 0.4) * force,
+        vy: (e.ny * (0.4 + Math.random() * 0.9) + (Math.random() - 0.5) * 0.4 - 0.25) * force,
+        life: 900 + Math.random() * 2200, max: 0, seed: Math.random() * 10,
+        r: Math.min(255, TR[i] + lift) | 0, g: Math.min(255, TG[i] + lift) | 0, b: Math.min(255, TB[i] + lift) | 0,
+        a: 0.5 + Math.random() * 0.5,
+        size: step * (Math.random() < 0.2 ? 2 : 1),
+      });
+      dust[dust.length - 1].max = dust[dust.length - 1].life;
     }
 
     function pointerOnStage(){
@@ -438,15 +504,16 @@
     }).observe(stage);
     document.addEventListener("visibilitychange", () => { if(!document.hidden) start(); });
 
-    // clicking the stage sends the next photo out from where you clicked
+    // clicking sends the next picture (or, with one, the same one again) out from where you clicked
+    const next = () => (current + 1) % images.length;
     stage.addEventListener("click", (e) => {
       sinceSwap = 0;
       const r = stage.getBoundingClientRect();
       const fromPointer = e.detail > 0;   // a keyboard "click" has no position
-      form((current + 1) % images.length, fromPointer ? e.clientX - r.left : null, fromPointer ? e.clientY - r.top : null);
+      form(next(), fromPointer ? e.clientX - r.left : null, fromPointer ? e.clientY - r.top : null);
     });
     stage.addEventListener("keydown", (e) => {
-      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); sinceSwap = 0; form((current + 1) % images.length); }
+      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); sinceSwap = 0; form(next()); }
     });
 
     let rt = null, lastW = window.innerWidth;
@@ -460,6 +527,38 @@
       }, 150);
     });
     window.addEventListener("scroll", () => { rect = stage.getBoundingClientRect(); }, { passive: true });
+  }
+
+  /* a still picture for visitors who asked for less motion */
+  function stillInstead(stage, canvas, src, alt, cls){
+    const img = new Image();
+    img.src = src; img.alt = alt || ""; img.className = cls;
+    stage.appendChild(img);
+    canvas.remove();
+  }
+
+  function initHero(){
+    const stage = document.getElementById("hero-stage");
+    const canvas = document.getElementById("hero-particles");
+    if(!stage || !canvas) return;
+    const sources = (window.TK_HERO_PHOTOS || []).filter(p => p && p.src);
+    const caption = document.getElementById("hero-caption-title");
+    if(!sources.length) return;
+    if(reduced){
+      stillInstead(stage, canvas, sources[0].src, sources[0].title, "hero-still");
+      if(caption) caption.textContent = sources[0].title || "";
+      return;
+    }
+    pixelStage({ stage, canvas, sources, caption, fit: "cover", vignette: true, ring: true, cycle: true });
+  }
+
+  function initPortrait(){
+    const stage = document.getElementById("portrait-stage");
+    const canvas = document.getElementById("portrait-particles");
+    const src = window.TK_PORTRAIT;
+    if(!stage || !canvas || !src) return;
+    if(reduced){ stillInstead(stage, canvas, src, "", "portrait-still"); return; }
+    pixelStage({ stage, canvas, sources: [{ src }], fit: "contain", vignette: false, dust: true, density: 0.8 });
   }
 
   /* ============================================================
@@ -537,6 +636,6 @@
     initSoundButton();
     initField();
     // wait a frame so the hero has its final size before sampling the photo
-    requestAnimationFrame(() => requestAnimationFrame(initHero));
+    requestAnimationFrame(() => requestAnimationFrame(() => { initHero(); initPortrait(); }));
   });
 })();

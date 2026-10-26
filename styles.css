@@ -456,7 +456,8 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
 .screen-btn{ margin-top: 8px; }
 
 /* the films and the edits, each with a heading and a grid */
-.reel-sections{ margin-top: 72px; display: grid; gap: 72px; }
+.reel-sections{ margin-top: 72px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 72px; }
+.reel-section{ min-width: 0; }
 .reel-head{
   padding: 0 var(--margin);
   margin-bottom: 24px;
@@ -475,11 +476,42 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
+/* each section runs in one line, scrolled, swiped or dragged sideways */
 .reels{
-  padding: 0 var(--margin);
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
-  gap: 40px var(--gutter);
+  position: relative;
+  display: flex;
+  gap: var(--gutter);
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--margin);
+  padding: 6px var(--margin) 18px;
+  scrollbar-width: none;
+  cursor: grab;
+}
+.reels::-webkit-scrollbar{ display: none; }
+.reels.is-dragging{ cursor: grabbing; scroll-snap-type: none; }
+.reels.is-dragging .clip{ pointer-events: none; }
+.reels > li{ flex: none; width: clamp(260px, 25vw, 380px); scroll-snap-align: start; }
+/* how far the playing piece's preview has run */
+.clip-thumb > .clip-progress{
+  position: absolute;
+  inset: auto 0 0 0;
+  width: auto;
+  height: 3px;
+  background: var(--grad);
+  transform: scaleX(0);
+  transform-origin: left;
+  z-index: 1;
+}
+/* "(FANDOM EDIT)" after the title of a movie edit */
+.fandom{
+  font-family: var(--text);
+  font-weight: 600;
+  font-size: 0.42em;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  vertical-align: 0.35em;
+  white-space: nowrap;
 }
 .clip{ display: grid; gap: 4px; width: 100%; text-align: left; }
 .clip-thumb{
@@ -513,12 +545,7 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
 .clip.is-current .clip-title{ color: var(--g-peach); }
 .clip:focus-visible{ outline: none; }
 .clip:focus-visible .clip-thumb{ outline-color: var(--ink); }
-/* the filters: All, Films, Edits; picking Films opens a row of its types */
-.work-filter{ flex-direction: column; align-items: flex-end; }
-.chip-row{ display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
-.chip-sub{ animation: rise 300ms var(--ease-out); }
-.chip-small{ min-height: 38px; padding: 0 14px; font-size: var(--step-small); }
-@keyframes rise{ from{ opacity: 0; transform: translateY(-6px); } to{ opacity: 1; transform: none; } }
+
 .work-empty{ padding: 0 var(--margin); color: var(--muted); }
 
 /* ============ PHOTOGRAPHY: albums as stacks of prints ============ */
@@ -635,21 +662,59 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   grid-template-columns: repeat(12, minmax(0, 1fr));
   column-gap: var(--gutter);
   row-gap: 48px;
+  align-items: center;
 }
-.about-facts{
-  grid-column: 1 / span 3;
-  display: grid;
-  align-content: start;
-  gap: 40px;
+/* the portrait: a cut-out on black, its outline drifting off as dust */
+.portrait-wrap{ grid-column: 1 / span 6; margin: 0; position: relative; }
+.portrait-wrap::before{
+  /* a low warm light behind the figure */
+  content: "";
+  position: absolute;
+  inset: 18% 10% 4%;
+  background: radial-gradient(closest-side, rgba(255, 90, 31, 0.22), transparent);
+  filter: blur(30px);
+  z-index: -1;
 }
+.portrait-stage{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 960 / 1143;
+  max-height: 86svh;
+  cursor: crosshair;
+  outline-offset: 6px;
+}
+.portrait-stage canvas,
+.portrait-still{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: bottom; }
+
+.about-body{ grid-column: 7 / -1; display: grid; gap: 28px; align-content: center; }
 .about-title{
   font-family: var(--display);
   font-weight: 400;
   text-transform: uppercase;
   font-size: clamp(3rem, 1rem + 4vw, 5.5rem);
   line-height: 0.86;
+  background: var(--grad-warm);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  justify-self: start;
 }
-.stats{ display: grid; gap: 14px; }
+.about-lead{
+  font-size: var(--step-lead);
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  max-width: 30ch;
+}
+.about-more{ max-width: 56ch; }
+.about-more p{ margin-bottom: 1em; }
+.about-more p:last-child{ margin-bottom: 0; }
+.about-facts{
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 32px 56px;
+  padding-top: 8px;
+}
+.stats{ display: grid; gap: 14px; align-content: start; }
 .stats div{ display: flex; align-items: baseline; gap: 12px; }
 .stats dt{
   font-family: var(--display);
@@ -657,41 +722,10 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   line-height: 1;
   min-width: 2.4em;
   font-variant-numeric: tabular-nums;
+  color: var(--g-peach);
 }
 .kit h3{ font-size: var(--step-body); font-weight: 600; margin-bottom: 6px; }
 .kit li{ line-height: 1.6; }
-
-.about-body{ grid-column: 5 / -1; }
-.about-lead{
-  font-size: var(--step-lead);
-  line-height: 1.22;
-  letter-spacing: -0.01em;
-  max-width: 34ch;
-}
-.portrait{
-  float: left;
-  width: 3.6em;
-  height: 3.6em;
-  margin: 0.2em 0.5em 0 0;
-  background: var(--surface);
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-}
-.portrait img{ width: 100%; height: 100%; object-fit: cover; }
-.portrait-empty{
-  font-family: var(--display);
-  font-size: 1.4em;
-  color: var(--muted);
-}
-.about-more{
-  margin-top: 48px;
-  columns: 2 22ch;
-  column-gap: var(--gutter);
-  max-width: 72ch;
-}
-.about-more p{ break-inside: avoid; margin-bottom: 1em; }
-.about-caption{ margin-top: 16px; color: var(--muted); font-size: var(--step-small); }
 
 /* ============ ROLES ============ */
 /* roles sit on a full field of the gradient, in dark ink */
@@ -979,9 +1013,7 @@ details.credit summary:hover{ background: rgba(11, 11, 13, 0.1); }
   .screen, .screen-info{ grid-column: 1 / -1; }
   .screen-play{ width: 60px; height: 60px; margin: -30px 0 0 -30px; }
   .reel-sections{ margin-top: 48px; gap: 56px; }
-  .reels{ gap: 32px; }
-  .work-filter{ align-items: flex-start; }
-  .chip-row{ justify-content: flex-start; }
+  .reels > li{ width: 74vw; }
   .chip{ min-height: 40px; padding: 0 14px; }
 
   .photos-head{ grid-template-columns: 1fr; grid-template-areas: "title"; margin-bottom: 24px; }
@@ -989,14 +1021,11 @@ details.credit summary:hover{ background: rgba(11, 11, 13, 0.1); }
   .stack-item{ width: 72vw; }
   .photos-row{ padding-top: 28px; }
   .bar-opt{ display: none; }
-  .about{ grid-template-columns: 1fr; row-gap: 40px; }
-  .about-facts, .about-body{ grid-column: 1; }
-  .about-facts{ display: contents; }
-  .about-title{ order: -2; font-size: 3rem; }
-  .about-body{ order: -1; }
-  .stats, .kit{ order: 1; }
+  .about{ grid-template-columns: 1fr; row-gap: 32px; }
+  .portrait-wrap, .about-body{ grid-column: 1; }
+  .portrait-stage{ max-height: 70svh; }
   .about-lead{ font-size: 1.375rem; line-height: 1.25; }
-  .portrait{ width: 4.6em; height: 4.6em; }
+  .about-facts{ grid-template-columns: 1fr; gap: 28px; }
   .about-more{ columns: 1; margin-top: 32px; }
 
   .credit-row{ grid-template-columns: 1fr 18px; padding: 14px 16px; row-gap: 2px; }

@@ -93,6 +93,8 @@ const CONTENT = {
     { id: "films",       label: "Films",       hint: "Short films & direction" },
   ],
 
+  // Set fandom: true on an edit of a movie or show, and "(FANDOM EDIT)" shows
+  // next to its title.
   // A film or edit can also have a "type" (e.g. "Glimpses", "Promo"); the Work
   // section groups pieces under these names.
   // Your portfolio pieces. Add as many as you want — the grid and
@@ -115,6 +117,7 @@ const CONTENT = {
       title: "Kamal Haasan",
       year: "2025",
       role: "Editor",
+      fandom: true,
       description: "",
       image: "assets/edits/kamal-haasan-cover.jpg",
       preview: "assets/edits/kamal-haasan-preview.mp4",
@@ -123,7 +126,7 @@ const CONTENT = {
     },
     {
       category: "edits",
-      title: "Final Mix",
+      title: "Vibrance ’24 Teaser",
       year: "2024",
       role: "Editor",
       description: "",
@@ -134,20 +137,10 @@ const CONTENT = {
     },
     {
       category: "edits",
-      title: "Vibrance ’24 Trailer",
-      year: "2024",
-      role: "Editor",
-      description: "The trailer for Vibrance ’24 at VIT Chennai.",
-      image: "assets/edits/vibrance24-trailer-cover.jpg",
-      preview: "assets/edits/vibrance24-trailer-preview.mp4",
-      video: "https://drive.google.com/file/d/1YCp6i_URnUV_0XdLiRVT8sTX7yQzMADa/view",
-      link: null,
-    },
-    {
-      category: "edits",
       title: "The Batman",
       year: "2026",
       role: "Editor",
+      fandom: true,
       description: "",
       image: "assets/edits/final-1-cover.jpg",
       preview: "assets/edits/final-1-preview.mp4",
@@ -159,6 +152,7 @@ const CONTENT = {
       title: "Femverse",
       year: "2025",
       role: "Editor",
+      fandom: true,
       description: "",
       image: "assets/edits/femverse-cover.jpg",
       preview: "assets/edits/femverse-preview.mp4",
@@ -170,6 +164,7 @@ const CONTENT = {
       title: "Vikram",
       year: "2025",
       role: "Editor",
+      fandom: true,
       description: "",
       image: "assets/edits/vikram-cover.jpg",
       preview: "assets/edits/vikram-preview.mp4",
@@ -181,6 +176,7 @@ const CONTENT = {
       title: "JD",
       year: "2025",
       role: "Editor",
+      fandom: true,
       description: "",
       image: "assets/edits/jd-cover.jpg",
       preview: "assets/edits/jd-preview.mp4",
@@ -192,6 +188,7 @@ const CONTENT = {
       title: "JW × Marri",
       year: "2025",
       role: "Editor",
+      fandom: true,
       description: "",
       image: "assets/edits/jw-x-marri-cover.jpg",
       preview: "assets/edits/jw-x-marri-preview.mp4",
@@ -214,20 +211,11 @@ const CONTENT = {
       title: "Wolverine",
       year: "2024",
       role: "Editor",
+      fandom: true,
       description: "",
       image: "assets/edits/wolverine-cover.jpg",
       preview: "assets/edits/wolverine-preview.mp4",
       video: "https://drive.google.com/file/d/16rOvd5mFt5rOZzf2ygJC3B0bUj8X_fy0/view",
-      link: null,
-    },
-    {
-      category: "edits",
-      title: "Beat-Sync Auto Cutter",
-      year: "2026",
-      role: "Tool + Edit",
-      description: "A Premiere Pro extension I built that reads a track's beat map and auto-cuts the timeline to the drop — built this to speed up recap and montage edits for Film Society.",
-      image: null,
-      video: null,
       link: null,
     },
     {
@@ -266,6 +254,18 @@ const CONTENT = {
       preview: "assets/films/land-of-french-preview.mp4",
       video: "assets/films/land-of-french.mp4",
       link: "https://www.instagram.com/p/DKr-EjbyLV4/",
+    },
+    {
+      category: "films",
+      type: "Trailer",
+      title: "Vibrance ’24 Trailer",
+      year: "2024",
+      role: "Editor",
+      description: "The trailer for Vibrance ’24 at VIT Chennai.",
+      image: "assets/edits/vibrance24-trailer-cover.jpg",
+      preview: "assets/edits/vibrance24-trailer-preview.mp4",
+      video: "https://drive.google.com/file/d/1YCp6i_URnUV_0XdLiRVT8sTX7yQzMADa/view",
+      link: null,
     },
     {
       category: "photography",
@@ -425,11 +425,9 @@ const CONTENT = {
   ],
 
   about: {
-    // Your photo. Drop the file in the repo (e.g. assets/portrait.jpg) and put
-    // that path here. Leave it null to keep the empty "PORTRAIT" placeholder.
-    portrait: null,
-    // shown as a small floating tag overlapping the portrait photo
-    caption: "Usually mid color-grade.",
+    // Your portrait: a cut-out on a transparent ground (PNG or WebP) works best;
+    // its outline drifts away as dust. Leave it null to hide the portrait.
+    portrait: "assets/portrait.webp",
     paragraphs: [
       "I'm Tharun — an editor, photographer and filmmaker based out of Chennai, currently studying Electrical and Electronics Engineering at VIT.",
       "The engineering side isn't separate from the creative side — I like building the tools I edit with as much as I like editing. A beat-detection cutter for Premiere Pro started as a way to save myself time; it's now part of how I work.",
