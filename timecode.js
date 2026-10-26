@@ -6,8 +6,8 @@
      down the page you are.
    - Scrolling fast-forwards (or rewinds) the timecode, and the box
      sways behind the scroll on a spring, like a camera on a rig.
-   - At the foot of the page it rises to sit above the footer text
-     instead of covering it.
+   - At the foot of the page it slips away as the control deck comes
+     into view.
    - It appears once the intro has finished.
    You should not need to edit this file.
    ============================================================ */
@@ -30,7 +30,7 @@
     const scene = box.querySelector(".tcb-scene");
     const dir = box.querySelector(".tcb-dir");
     const bar = box.querySelector(".tcb-track > span");
-    const foot = document.querySelector(".contact-foot");
+    const deck = document.getElementById("deck");
 
     const sections = SCENES.map(([id, name], i) => ({ el: document.getElementById(id), name, n: i + 1 })).filter(s => s.el);
 
@@ -64,12 +64,9 @@
       const max = document.documentElement.scrollHeight - window.innerHeight;
       bar.style.transform = `scaleX(${max > 0 ? (y / max).toFixed(4) : 0})`;
 
-      // near the bottom of the page, rise to clear the footer text
-      let lift = 0;
-      if(foot){
-        const gap = parseFloat(getComputedStyle(box).bottom) || 0;
-        lift = Math.max(0, (window.innerHeight - gap) - (foot.getBoundingClientRect().top - 14));
-      }
+      // the deck at the foot takes over: the box slips away while it's up
+      if(deck) box.classList.toggle("is-away", deck.getBoundingClientRect().top < window.innerHeight - 40);
+      const lift = 0;
 
       // the box lags behind the scroll on a spring, and settles back
       if(reduced) box.style.transform = `translate3d(0, ${-lift}px, 0)`;
