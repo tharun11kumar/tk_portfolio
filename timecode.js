@@ -6,6 +6,8 @@
      down the page you are.
    - Scrolling fast-forwards (or rewinds) the timecode, and the box
      sways behind the scroll on a spring, like a camera on a rig.
+   - At the foot of the page it rises to sit above the footer text
+     instead of covering it.
    - It appears once the intro has finished.
    You should not need to edit this file.
    ============================================================ */
@@ -28,6 +30,7 @@
     const scene = box.querySelector(".tcb-scene");
     const dir = box.querySelector(".tcb-dir");
     const bar = box.querySelector(".tcb-track > span");
+    const foot = document.querySelector(".contact-foot");
 
     const sections = SCENES.map(([id, name], i) => ({ el: document.getElementById(id), name, n: i + 1 })).filter(s => s.el);
 
@@ -61,13 +64,21 @@
       const max = document.documentElement.scrollHeight - window.innerHeight;
       bar.style.transform = `scaleX(${max > 0 ? (y / max).toFixed(4) : 0})`;
 
+      // near the bottom of the page, rise to clear the footer text
+      let lift = 0;
+      if(foot){
+        const gap = parseFloat(getComputedStyle(box).bottom) || 0;
+        lift = Math.max(0, (window.innerHeight - gap) - (foot.getBoundingClientRect().top - 14));
+      }
+
       // the box lags behind the scroll on a spring, and settles back
-      if(!reduced){
+      if(reduced) box.style.transform = `translate3d(0, ${-lift}px, 0)`;
+      else {
         swayV += (-dy * 0.6 - sway) * 0.12;
         swayV *= 0.78;
         sway += swayV;
         sway = Math.max(-28, Math.min(28, sway));
-        box.style.transform = `translate3d(0, ${sway.toFixed(2)}px, 0) rotate(${(sway * 0.12).toFixed(2)}deg)`;
+        box.style.transform = `translate3d(0, ${(sway - lift).toFixed(2)}px, 0) rotate(${(sway * 0.12).toFixed(2)}deg)`;
       }
       requestAnimationFrame(frame);
     }
