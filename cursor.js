@@ -5,7 +5,7 @@
    - Over anything clickable the lens zooms in, focus brackets close
      around it and a word says what a click does (Play, View, Open).
    - A click fires the shutter: a flash bursts from the lens.
-   - Over the hero and the portrait the camera steps aside for a small
+   - Over the hero, the portrait and the deck keys the camera steps aside for a small
      focus reticle: a bright dot on the pointer, and a ring of four
      arcs that trails it, turns slowly and closes in on a click.
    Only on devices with a mouse; touch screens keep their own.
@@ -82,7 +82,7 @@
     const hot = t.closest("a, button, summary, [role='button'], .clip, .stack, .screen, label");
     root.classList.toggle("is-hot", !!hot);
     label.textContent = hot ? labelFor(hot) : "";
-    onStage = !!t.closest("#hero-stage, #portrait-stage");
+    onStage = !!t.closest("#hero-stage, #portrait-stage, #deck");
     root.classList.toggle("is-away", onStage);
     ret.classList.toggle("is-on", onStage);
   });

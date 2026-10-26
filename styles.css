@@ -993,7 +993,8 @@ details.credit summary:hover{ background: rgba(11, 11, 13, 0.1); }
     inset 4px 0 5px -3px rgba(255, 255, 255, 0.1),
     inset -4px 0 5px -3px rgba(0, 0, 0, 0.45),
     inset 0 -3px 4px rgba(0, 0, 0, 0.35);
-  transition: transform 90ms ease, box-shadow 90ms ease;
+  /* coming back up: a spring, with a touch of overshoot */
+  transition: transform 340ms cubic-bezier(0.34, 1.8, 0.5, 1), box-shadow 300ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 .key-cap{
@@ -1008,7 +1009,7 @@ details.credit summary:hover{ background: rgba(11, 11, 13, 0.1); }
     inset 0 1px 1px rgba(255, 255, 255, 0.45),
     inset 0 -6px 10px rgba(0, 0, 0, 0.18),
     0 2px 3px rgba(0, 0, 0, 0.4);
-  transition: bottom 90ms ease, filter 160ms ease;
+  transition: bottom 340ms cubic-bezier(0.34, 1.8, 0.5, 1), filter 200ms ease, box-shadow 200ms ease;
 }
 .key-label{
   color: var(--ink, #f4f1ea);
@@ -1017,20 +1018,40 @@ details.credit summary:hover{ background: rgba(11, 11, 13, 0.1); }
   text-transform: uppercase;
   white-space: nowrap;
 }
-.key:hover .key-cap{ filter: brightness(1.1); }
-/* pressed: the cap sinks onto its skirt */
-.key:active{
-  transform: perspective(calc(var(--u) * 3.2)) rotateX(12deg) translateY(calc(var(--u) * 0.07));
-  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+.key:focus-visible{ outline: 2px solid #57ff86; outline-offset: 3px; }
+/* under the cursor the key travels down, like a finger resting on a switch:
+   the cap drops, its skirt sinks into the deck and the shadow tucks in */
+.key:hover, .key:focus-visible{
+  transform: perspective(calc(var(--u) * 3.2)) rotateX(12deg) translateY(calc(var(--u) * 0.06));
+  box-shadow:
+    0 calc(var(--u) * 0.03) calc(var(--u) * 0.06) -2px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.4),
+    0 calc(var(--u) * 0.05) calc(var(--u) * 0.18) -2px var(--glow, rgba(255, 255, 255, 0.1));
+  transition: transform 70ms ease-out, box-shadow 70ms ease-out;
 }
-.key:active .key-cap{ bottom: 20%; }
+.key:hover .key-cap, .key:focus-visible .key-cap{
+  bottom: 21%;
+  filter: brightness(1.06);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), inset 0 -4px 8px rgba(0, 0, 0, 0.22), 0 1px 2px rgba(0, 0, 0, 0.45);
+  transition: bottom 70ms ease-out, filter 120ms ease, box-shadow 70ms ease-out;
+}
+/* a click bottoms it out */
+.key:active{
+  transform: perspective(calc(var(--u) * 3.2)) rotateX(12deg) translateY(calc(var(--u) * 0.1));
+  box-shadow: 0 1px 2px -1px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 calc(var(--u) * 0.04) calc(var(--u) * 0.22) 0 var(--glow, rgba(255, 255, 255, 0.12));
+  transition-duration: 40ms;
+}
+.key:active .key-cap{ bottom: 13%; filter: brightness(0.96); transition-duration: 40ms; }
 
-.key-black{  --f1: #4a4a50; --f2: #1f1f23; --sk1: #3a3a40; --sk2: #0d0d0f; }
-.key-frost{  --f1: #ffffff; --f2: #a9cdf2; --sk1: #b9d6f4; --sk2: #4675b8; --ink: #3c6fb8; }
-.key-sand{   --f1: #f8e4bb; --f2: #d8b27a; --sk1: #b98c55; --sk2: #6f4e2b; --ink: #3d2b14; }
-.key-candy{  --f1: #ffd0f2; --f2: #ee86d6; --sk1: #c962b4; --sk2: #6f2765; --ink: #8e2a80; }
-.key-cobalt{ --f1: #6f86ff; --f2: #2537ee; --sk1: #2230c4; --sk2: #0d1260; }
-.key-sunset{ --sk1: #b8306a; --sk2: #4a1a6a; }
+.key-black{  --f1: #4a4a50; --f2: #1f1f23; --sk1: #3a3a40; --sk2: #0d0d0f; --glow: rgba(87, 255, 134, 0.22); }
+.key-frost{  --f1: #ffffff; --f2: #a9cdf2; --sk1: #b9d6f4; --sk2: #4675b8; --ink: #3c6fb8; --glow: rgba(150, 200, 255, 0.45); }
+.key-sand{   --f1: #f8e4bb; --f2: #d8b27a; --sk1: #b98c55; --sk2: #6f4e2b; --ink: #3d2b14; --glow: rgba(255, 210, 140, 0.4); }
+.key-candy{  --f1: #ffd0f2; --f2: #ee86d6; --sk1: #c962b4; --sk2: #6f2765; --ink: #8e2a80; --glow: rgba(255, 140, 220, 0.45); }
+.key-cobalt{ --f1: #6f86ff; --f2: #2537ee; --sk1: #2230c4; --sk2: #0d1260; --glow: rgba(90, 120, 255, 0.55); }
+.key-sunset{ --sk1: #b8306a; --sk2: #4a1a6a; --glow: rgba(255, 90, 120, 0.5); }
 .key-sunset .key-cap{
   background:
     radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.3), transparent 60%),
