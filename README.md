@@ -266,10 +266,11 @@ Put your own media anywhere you like under `assets/` — e.g.
   six seconds (or when a visitor clicks it). Moving the cursor or a finger
   over it scatters the particles; they drift back. Bright subjects on dark
   grounds read best. Leave `hero.photos` empty to use every album photo.
-- **"React to sound".** The button under the particle photo asks the visitor
-  for their microphone. Once they allow it, the volume pushes the particles
-  outward and swells the background glow. Nothing is recorded or sent
-  anywhere, and it stops when they click the button again.
+- **Sound.** On a visitor's first click or key press the site asks for their
+  microphone (browsers don't allow asking sooner). Once they allow it, the
+  volume stirs the drifting points, swells the background glow, makes the
+  portrait's lens breathe and lights the meter in the timecode box. The photo
+  on the first screen stays out of it. Nothing is recorded or sent anywhere.
 - **The drifting points and the glow** behind the whole page also move out of
   the cursor's way. All of this lives in `particles.js`.
 - **Until a piece has a real still, it gets a drawn cover**: a timeline for

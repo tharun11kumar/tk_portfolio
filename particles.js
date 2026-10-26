@@ -5,9 +5,10 @@
      every few seconds a ripple carries it to the next photo.
    - A light field of drifting points sits behind the whole page
      and also gets out of the cursor's way.
-   - "React to sound" listens to the microphone (nothing is
-     recorded or sent anywhere) and lets the volume push the
-     particles and swell the glow.
+   - Sound: after the visitor's first click the site asks for the
+     microphone (nothing is recorded or sent anywhere); the volume
+     then stirs the drifting points and swells the glow. The hero
+     photo stays out of it.
    Everything holds still for visitors with "reduce motion" on.
    You should not need to edit this file.
    ============================================================ */
@@ -32,7 +33,7 @@
   window.TKSound = sound;
 
   /* ============================================================
-     SOUND — microphone level, only after the visitor asks for it
+     SOUND — microphone level, once the visitor allows it
      ============================================================ */
   let audio = null;
   async function startSound(){
@@ -47,13 +48,11 @@
     const freq = new Uint8Array(analyser.frequencyBinCount);
     audio = { stream, ctx, analyser, wave, freq };
     sound.on = true;
-  }
-  function stopSound(){
-    if(!audio) return;
-    audio.stream.getTracks().forEach(t => t.stop());
-    audio.ctx.close();
-    audio = null;
-    sound.on = false;
+    if(ctx.state === "suspended"){
+      const wake = () => { ctx.resume(); window.removeEventListener("pointerdown", wake, true); window.removeEventListener("keydown", wake, true); };
+      window.addEventListener("pointerdown", wake, true);
+      window.addEventListener("keydown", wake, true);
+    }
   }
   function readSound(){
     if(!audio){
@@ -76,32 +75,23 @@
     document.documentElement.style.setProperty("--bass", sound.bass.toFixed(3));
   }
 
-  function initSoundButton(){
-    const btn = document.getElementById("sound-toggle");
-    if(!btn) return;
-    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || reduced){
-      btn.hidden = true;
-      return;
+  // no button: the microphone is asked for on the visitor's first click or key
+  // press (browsers only allow it after one); if they allowed it on an earlier
+  // visit, listening starts straight away
+  function autoSound(){
+    if(reduced || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    const EVENTS = ["pointerdown", "keydown", "touchstart"];
+    let asked = false;
+    const go = () => {
+      if(asked) return;
+      asked = true;
+      EVENTS.forEach(e => window.removeEventListener(e, go, true));
+      startSound().catch(() => {});
+    };
+    EVENTS.forEach(e => window.addEventListener(e, go, true));
+    if(navigator.permissions && navigator.permissions.query){
+      navigator.permissions.query({ name: "microphone" }).then(p => { if(p.state === "granted") go(); }).catch(() => {});
     }
-    const label = btn.querySelector(".sound-label");
-    btn.addEventListener("click", async () => {
-      if(sound.on){
-        stopSound();
-        btn.setAttribute("aria-pressed", "false");
-        label.textContent = "React to sound";
-        return;
-      }
-      label.textContent = "Allow the microphone…";
-      try{
-        await startSound();
-        btn.setAttribute("aria-pressed", "true");
-        label.textContent = "Listening — make some noise";
-      } catch(err){
-        btn.setAttribute("aria-pressed", "false");
-        label.textContent = "Microphone blocked";
-        setTimeout(() => { label.textContent = "React to sound"; }, 2600);
-      }
-    });
   }
 
   /* ============================================================
@@ -179,6 +169,8 @@
   }
 
   function pixelStage(cfg){
+    // a stage only feels the sound when asked to; the hero doesn't
+    const sound = cfg.sound ? window.TKSound : { level: 0, bass: 0 };
     const { stage, canvas, sources, caption } = cfg;
     const fit = cfg.fit || "cover";
     const g = canvas.getContext("2d");
@@ -346,7 +338,6 @@
       if(!newLayer){ last = now; raf = requestAnimationFrame(tick); return; }
       const ms = Math.min(48, now - last); last = now;
       const dt = ms / 16.67;
-      readSound();
       sinceSwap += ms;
       // a playing video keeps its layer current
       if(live && !live.paused && live.readyState >= 2) paintLayer(newLayer, live, fit, mask);
@@ -641,7 +632,7 @@
     let lastY = window.scrollY, drift = 0;
     function tick(){
       if(document.hidden){ requestAnimationFrame(tick); return; }
-      if(!document.getElementById("hero-particles")) readSound();
+      readSound();
       // scrolling stirs the field a little
       const y = window.scrollY; drift += (y - lastY) * 0.02; lastY = y; drift *= 0.9;
       const lvl = sound.level;
@@ -684,7 +675,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    initSoundButton();
+    autoSound();
     initField();
     // wait a frame so the hero has its final size before sampling the photo
     requestAnimationFrame(() => requestAnimationFrame(() => { initHero(); }));
