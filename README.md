@@ -2,8 +2,7 @@
 
 A dark single-page portfolio built like a title card: your name set huge
 across the first screen in a warm moving gradient, your photos rebuilt out of
-particles that scatter away from the cursor (and, if a visitor switches it
-on, react to sound), then your work as big names passing a held frame, an
+particles that scatter away from the cursor, then your work as big names passing a held frame, an
 about section, your roles on a gradient field, and your email as the
 closing line.
 
@@ -243,7 +242,7 @@ You only ever edit `content.js`. For reference, everything else is:
 | Path | What it is |
 |---|---|
 | `index.html` `styles.css` `script.js` | The site itself |
-| `particles.js` | The particle photo, the drifting points and the sound mode |
+| `particles.js` | The particle photo and the drifting points |
 | `assets/photos/` | Your photography, ready for the web |
 | `content.js` | **Your content — the only file you edit** |
 
@@ -266,11 +265,6 @@ Put your own media anywhere you like under `assets/` — e.g.
   six seconds (or when a visitor clicks it). Moving the cursor or a finger
   over it scatters the particles; they drift back. Bright subjects on dark
   grounds read best. Leave `hero.photos` empty to use every album photo.
-- **Sound.** On a visitor's first click or key press the site asks for their
-  microphone (browsers don't allow asking sooner). Once they allow it, the
-  volume stirs the drifting points, swells the background glow, makes the
-  portrait's lens breathe and lights the meter in the timecode box. The photo
-  on the first screen stays out of it. Nothing is recorded or sent anywhere.
 - **The drifting points and the glow** behind the whole page also move out of
   the cursor's way. All of this lives in `particles.js`.
 - **Until a piece has a real still, it gets a drawn cover**: a timeline for

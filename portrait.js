@@ -8,7 +8,6 @@
    - With no pointer over it, the lens drifts slowly around the face.
    - A click (or a tap) pulls focus: the lens opens wide, then settles.
    - The dots print themselves in when the section scrolls into view.
-   - With sound on, the lens swells with the music.
    Visitors who asked for less motion get the plain photo.
    The photo comes from CONTENT.about.portrait.
    You should not need to edit this file.
@@ -160,9 +159,7 @@
       // the focus pull: a springy radius
       openV += (1 - open) * 0.09; openV *= 0.8; open += openV;
 
-      // the lens breathes with the bass, and keeps redrawing while there's sound
-      const snd = window.TKSound || { level: 0, bass: 0 };
-      const lr = R * open * Math.min(1, reveal * 1.4) * (1 + snd.bass * 0.22 + snd.level * 0.08);
+      const lr = R * open * Math.min(1, reveal * 1.4);
       g.drawImage(print, 0, 0, W, H);
       if(lr > 2) drawLens(lr);
       raf = requestAnimationFrame(frame);
