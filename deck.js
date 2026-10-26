@@ -8,6 +8,10 @@
      you point at it.
    - A round waveform scope traces your initials in green; point at
      a key and it shows that key's own wave.
+   - It's a solid object in 3D: it lies tilted back like a desk and
+     stands up as you scroll to it, leans toward the cursor, and a
+     light sheen follows the pointer across its surface. Keys, the
+     screen and the scope sit raised off the panel.
    The email and socials come from content.js.
    You should not need to edit this file.
    ============================================================ */
@@ -52,6 +56,14 @@
         <span class="deck-screw s3"></span><span class="deck-screw s4"></span>
       </div>
       <span class="deck-screw c1" aria-hidden="true"></span><span class="deck-screw c2" aria-hidden="true"></span>`;
+
+    // the stage gives the deck its perspective and its shadow on the floor
+    const stage = document.createElement("div");
+    stage.className = "deck-stage";
+    deck.parentNode.insertBefore(stage, deck);
+    stage.appendChild(deck);
+    stage.insertAdjacentHTML("beforeend", `<span class="deck-floor" aria-hidden="true"></span>`);
+    const floor = stage.querySelector(".deck-floor");
 
     const lcd = deck.querySelector(".deck-lcd-text");
     const wrap = deck.querySelector(".deck-keys");
@@ -187,11 +199,52 @@
     size();
     window.addEventListener("resize", () => { size(); start(); });
     document.addEventListener("visibilitychange", start);
+    /* ---------- the 3D tilt ---------- */
+    // tilt: the eased angles; aim: where the pointer wants them
+    let rx = 46, ry = 0, aimX = 0, aimY = 0, lx = 50, ly = 20, tiltRaf = 0, near = false;
+    window.addEventListener("pointermove", (e) => {
+      if(e.pointerType !== "mouse") return;
+      const r = deck.getBoundingClientRect();
+      const nx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
+      const ny = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
+      near = Math.abs(nx) < 1.6 && Math.abs(ny) < 2.4;
+      aimY = near ? Math.max(-1, Math.min(1, nx)) * 9 : 0;
+      aimX = near ? Math.max(-1, Math.min(1, ny)) * -7 : 0;
+      lx = ((e.clientX - r.left) / r.width) * 100;
+      ly = ((e.clientY - r.top) / r.height) * 100;
+    }, { passive: true });
+
+    function tilt(now){
+      tiltRaf = 0;
+      if(!visible) return;
+      const r = stage.getBoundingClientRect(), vh = window.innerHeight;
+      // lying back as it comes up the screen, standing at about 16 degrees once
+      // its top is 60% of the way up
+      const p = Math.max(0, Math.min(1, (vh - r.top) / (vh * 0.4)));
+      const base = 16 + (1 - p) * 36;
+      // with no mouse nearby it drifts a little, as if floating
+      const t = now / 1000;
+      const idleX = near ? 0 : Math.sin(t * 0.7) * 2.2, idleY = near ? 0 : Math.sin(t * 0.45) * 4;
+      rx += (base + aimX + idleX - rx) * 0.09;
+      ry += (aimY + idleY - ry) * 0.09;
+      deck.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
+      deck.style.setProperty("--lx", (near ? lx : 50 + ry * 4).toFixed(1) + "%");
+      deck.style.setProperty("--ly", (near ? ly : 10).toFixed(1) + "%");
+      deck.style.setProperty("--gx", (-ry * 1.5).toFixed(1) + "px");
+      // the shadow on the floor slides opposite the lean and spreads as it lies back
+      floor.style.transform = `translate3d(${(-ry * 3).toFixed(1)}px, 0, 0) scale(${(1 + (rx - 16) / 90).toFixed(3)}, 1)`;
+      tiltRaf = requestAnimationFrame(tilt);
+    }
+
     new IntersectionObserver((entries) => {
       visible = entries[0].isIntersecting;
-      deck.classList.toggle("is-in", visible);
+      stage.classList.toggle("is-in", visible);
       start();
-    }, { threshold: 0.1 }).observe(deck);
+      if(visible && !tiltRaf){
+        if(reduced){ deck.style.transform = "rotateX(16deg)"; }
+        else tiltRaf = requestAnimationFrame(tilt);
+      }
+    }, { threshold: 0 }).observe(stage);
   }
 
   document.addEventListener("DOMContentLoaded", init);
