@@ -112,7 +112,7 @@ function seeded(str){
 
 function drawCover(item, w, h){
   const r = seeded(item.title + item.category);
-  const INK = "#0d2a1c", SOFT = "#3d5a4b", BG = "#f7f7f7", SURF = "#ebebeb", ACC = "#f6e016";
+  const INK = "#0b0b0d", SOFT = "#3a2a4a", BG = "#f4f1ea", SURF = "#1d1b22", ACC = "#ff5a1f";
   let body = "";
 
   if(item.category === "photography"){
@@ -228,32 +228,14 @@ function renderSlate(){
   }).join("");
 }
 
-let heroTimer = null;
-function renderHeroPictures(){
-  const wrap = document.getElementById("hero-pictures");
-  const caption = document.getElementById("hero-caption-title");
-  const items = (CONTENT.work || []).slice(0, 6);
-  wrap.innerHTML = "";
-  if(!items.length) return;
-  const frames = items.map(item => {
-    const pic = pictureFor(item, 400, 600, item.title);
-    wrap.appendChild(pic);
-    return pic;
-  });
-  let i = 0;
-  const show = (n) => {
-    const nodes = wrap.children;
-    [...nodes].forEach((node, k) => node.classList.toggle("is-on", k === n));
-    caption.textContent = items[n].title;
-  };
-  requestAnimationFrame(() => show(0));
-  if(frames.length < 2 || reducedMotion()) return;
-  clearInterval(heroTimer);
-  heroTimer = setInterval(() => {
-    if(document.hidden) return;
-    i = (i + 1) % frames.length;
-    show(i);
-  }, 4200);
+/* the photos the hero builds out of particles (particles.js reads this list).
+   hero.photos in content.js picks them; otherwise every album photo is used. */
+function heroPhotos(){
+  const picked = (CONTENT.hero && CONTENT.hero.photos) || [];
+  if(picked.length) return picked.map(p => typeof p === "string" ? { src: p, title: "" } : p);
+  const out = [];
+  (CONTENT.work || []).forEach(w => (w.images || []).forEach(src => out.push({ src, title: w.title })));
+  return out;
 }
 
 function renderHero(){
@@ -265,7 +247,7 @@ function renderHero(){
     esc(CONTENT.role || "") + (based ? `<span>Based in ${esc(based.value)}</span>` : "");
   document.getElementById("hero-blurb").textContent = (CONTENT.hero && CONTENT.hero.blurb) || "";
   document.getElementById("bar-mark").textContent = initials(CONTENT.name);
-  renderHeroPictures();
+  window.TK_HERO_PHOTOS = heroPhotos();
 }
 
 function initials(name){

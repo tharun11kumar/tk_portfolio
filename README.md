@@ -1,9 +1,11 @@
 # Tharun Kumar — Portfolio
 
-A single-page portfolio built like a title card: your name set huge across
-the first screen, then your work as a list of big names that pass through a
-held frame (each name shows its picture as it crosses), an about section,
-your credits on a yellow field, and your email as the closing line.
+A dark single-page portfolio built like a title card: your name set huge
+across the first screen in a warm moving gradient, your photos rebuilt out of
+particles that scatter away from the cursor (and, if a visitor switches it
+on, react to sound), then your work as big names passing a held frame, an
+about section, your credits on a gradient field, and your email as the
+closing line.
 
 No build step — plain HTML/CSS/JS. That means **anyone can edit it in a
 text box on GitHub** and Vercel redeploys automatically.
@@ -214,30 +216,40 @@ You only ever edit `content.js`. For reference, everything else is:
 | Path | What it is |
 |---|---|
 | `index.html` `styles.css` `script.js` | The site itself |
+| `particles.js` | The particle photo, the drifting points and the sound mode |
+| `assets/photos/` | Your photography, ready for the web |
 | `content.js` | **Your content — the only file you edit** |
 
 Put your own media anywhere you like under `assets/` — e.g.
 `assets/photos/<album>/`, `assets/edits/`, `assets/portrait.jpg`.
 
 ## Notes
-- **The frame on the first screen builds itself from your work.** It cycles
-  through album covers, custom `image` covers and YouTube stills from the
-  `work` array, so the landing screen fills in with real frames as you add
-  projects. You don't configure it; just add work.
-- **Until a piece has a real still, it gets a drawn cover** in the site's
-  colours: a timeline for edits, a sun-and-horizon view for photography, a
-  letterboxed shot for films. Each title always gets the same drawing. Add
-  an `image` (or `images` for an album) and the drawing is replaced.
+- **The particle photo on the first screen.** It builds the photos listed in
+  `hero.photos` in `content.js` out of particles, one after another, every
+  six seconds (or when a visitor clicks it). Moving the cursor or a finger
+  over it scatters the particles; they drift back. Bright subjects on dark
+  grounds read best. Leave `hero.photos` empty to use every album photo.
+- **"React to sound".** The button under the particle photo asks the visitor
+  for their microphone. Once they allow it, the volume pushes the particles
+  outward and swells the background glow. Nothing is recorded or sent
+  anywhere, and it stops when they click the button again.
+- **The drifting points and the glow** behind the whole page also move out of
+  the cursor's way. All of this lives in `particles.js`.
+- **Until a piece has a real still, it gets a drawn cover**: a timeline for
+  edits, a sun-and-horizon view for photography, a letterboxed shot for
+  films. Add an `image` (or `images` for an album) and the drawing is
+  replaced.
+- **Your photography** lives in `assets/photos/`, exported at up to 2560px
+  on the long side. Add more by dropping files in a folder there and listing
+  them in an album's `images`.
 - Your name, the "Credits" word and your email are sized automatically to
-  fill the width, so a longer name or email still fits. Set `wordmark` if
-  you'd rather the first screen show something shorter.
-- The little running timecode under the frame is cosmetic (a nod to
-  editing timelines). It turns itself off for visitors who have "reduce
-  motion" enabled on their device.
-- **Everything respects "reduce motion".** With it switched on, the name
-  doesn't rise in, sections don't slide, the frame doesn't cycle and the
-  album slideshow doesn't autoplay. The content is all still there.
+  fill the width. Set `wordmark` if you'd rather the first screen show
+  something shorter.
+- **Everything respects "reduce motion".** With it switched on, the particle
+  photo becomes a still photo, the glow and points stop, the name doesn't
+  rise in, and the album slideshow doesn't autoplay. The content is all
+  still there.
 - No animation library: everything runs on plain CSS and a little
-  JavaScript, so there is nothing extra to load or break.
+  JavaScript (a canvas for the particles).
 - Fonts: Anton (the big condensed capitals) and Work Sans (everything
   else), loaded from Google Fonts.

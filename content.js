@@ -61,6 +61,15 @@ const CONTENT = {
       { label: "REEL",   value: "No. 001" },
     ],
     blurb: "I don't just edit videos — I chase pacing, rhythm and the right cut. From first frame to final render.",
+    // The photos the first screen builds out of particles, in order. Bright
+    // subjects on dark grounds work best. Leave the list empty to use every
+    // photo from your albums below.
+    photos: [
+      { src: "assets/photos/corridor/curves-beyond-lightroom.jpg", title: "Curves beyond Lightroom" },
+      { src: "assets/photos/mun/srmmun-25.jpg", title: "SRMMUN '25" },
+      { src: "assets/photos/stills/iphone-26mm.jpg", title: "Still life" },
+      { src: "assets/photos/mun/vlsmun-26.jpg", title: "VLSMUN '26" },
+    ],
   },
 
   // The numbers band under About. Each is a short value + a short label.
@@ -106,12 +115,40 @@ const CONTENT = {
     },
     {
       category: "photography",
-      title: "Add your photo album",
+      title: "MUN season",
+      year: "2025–26",
+      role: "Photographer",
+      description: "Covering Model UN conferences across Chennai: SRMVMUN '25, SRMMUN '25, Stella MUN '26 and VLSMUN '26. Delegates mid-speech, crowds in motion, the committee room from the floor.",
+      images: [
+        "assets/photos/mun/vlsmun-26.jpg",
+        "assets/photos/mun/srmvmun-25.jpg",
+        "assets/photos/mun/srmmun-25.jpg",
+        "assets/photos/mun/stella-mun-26.jpg",
+      ],
+      link: "https://www.instagram.com/framesoftk/",
+    },
+    {
+      category: "photography",
+      title: "Curves beyond Lightroom",
       year: "2026",
       role: "Photographer",
-      description: "Placeholder album — replace 'images' below with the real photos from a shoot. List every photo from that shoot in the array; it becomes one clickable album with all of them inside.",
-      images: [], // e.g. ["assets/photos/album-name/1.jpg", "assets/photos/album-name/2.jpg"]
-      link: null,
+      description: "A silhouette at the end of a corridor, shot against the window light and graded in black and white.",
+      images: [
+        "assets/photos/corridor/curves-beyond-lightroom.jpg",
+      ],
+      link: "https://www.instagram.com/p/De63Z4fzsbY/",
+    },
+    {
+      category: "photography",
+      title: "Still life",
+      year: "2026",
+      role: "Photographer",
+      description: "Product stills: a pair of frames on a Sigma 105mm f1.4, and a Coke bottle shot on an iPhone 14 Plus at 26mm.",
+      images: [
+        "assets/photos/stills/iphone-26mm.jpg",
+        "assets/photos/stills/sigma-105mm.jpg",
+      ],
+      link: "https://www.instagram.com/framesoftk/",
     },
     {
       category: "edits",
@@ -175,7 +212,7 @@ const CONTENT = {
   contact: {
     email: "hello@tharunkumar.example",
     socials: [
-      { label: "Instagram", url: "https://instagram.com/" },
+      { label: "Instagram", url: "https://www.instagram.com/framesoftk/" },
       { label: "YouTube",   url: "https://youtube.com/" },
       { label: "LinkedIn",  url: "https://linkedin.com/" },
     ],

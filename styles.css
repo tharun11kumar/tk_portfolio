@@ -3,20 +3,31 @@
    Content lives in content.js; you only need this file to change
    the design itself.
 
-   Direction: the name as a monument. One huge condensed name,
-   everything else small and calm, bottle-green ink on off-white
-   and a single yellow accent.
+   Direction: the name as a monument, after dark. One huge
+   condensed name on a near-black ground, warm aurora gradients
+   (ember orange, hot pink, electric violet) glowing behind it,
+   and your photos built out of particles (see particles.js).
    ============================================================ */
 
 :root{
-  /* colour: one ground, one ink, one accent */
-  --bg: #f7f7f7;
-  --surface: #ebebeb;
-  --ink: #0d2a1c;
-  --muted: #5a665f;
-  --accent: #f6e016;
-  --accent-step: #e6d10e;   /* one tone below the yellow field, for its bars */
-  --ink-soft: #3d5a4b;      /* drawn cards only */
+  --bg: #0b0b0d;
+  --surface: #17161b;
+  --ink: #f4f1ea;
+  --muted: #a39e95;
+  --accent: #ff5a1f;
+  --ink-dark: #0b0b0d;      /* text on the gradient fields */
+
+  /* the gradient family */
+  --g-ember: #ff5a1f;
+  --g-pink: #ff2e7e;
+  --g-violet: #6a5cff;
+  --g-peach: #ffb37a;
+  --grad: linear-gradient(115deg, var(--g-ember) 0%, var(--g-pink) 48%, var(--g-violet) 100%);
+  --grad-warm: linear-gradient(100deg, var(--g-peach), var(--g-ember) 45%, var(--g-pink));
+
+  /* live sound level, 0–1, written by particles.js */
+  --level: 0;
+  --bass: 0;
 
   /* type */
   --display: "Anton", "Arial Narrow", sans-serif;
@@ -45,12 +56,13 @@ html{
   scroll-behavior: smooth;
   scroll-padding-top: var(--bar-h);
   -webkit-text-size-adjust: 100%;
-  scrollbar-color: var(--ink) var(--surface);
+  scrollbar-color: var(--g-ember) var(--bg);
+  background: var(--bg);
 }
 
 body{
   margin: 0;
-  background: var(--bg);
+  background: transparent;
   color: var(--ink);
   font-family: var(--text);
   font-size: var(--step-body);
@@ -59,7 +71,41 @@ body{
   -webkit-font-smoothing: antialiased;
 }
 
-::selection{ background: var(--accent); color: var(--ink); }
+::selection{ background: var(--g-pink); color: #fff; }
+
+/* ============ BACKGROUND: aurora glow + particle field ============ */
+.aurora{
+  position: fixed;
+  inset: -20vmax;
+  z-index: -2;
+  pointer-events: none;
+  filter: blur(70px) saturate(1.2);
+  opacity: calc(0.55 + var(--level) * 0.45);
+  transform: scale(calc(1 + var(--bass) * 0.12));
+  transition: opacity 120ms linear, transform 120ms linear;
+}
+.aurora span{
+  position: absolute;
+  width: 55vmax;
+  height: 55vmax;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  animation: drift 26s ease-in-out infinite alternate;
+}
+.aurora span:nth-child(1){ left: 5%;  top: 0%;  background: radial-gradient(circle, rgba(255, 90, 31, 0.55), transparent 62%); }
+.aurora span:nth-child(2){ right: 0%; top: 20%; background: radial-gradient(circle, rgba(255, 46, 126, 0.42), transparent 62%); animation-duration: 32s; animation-delay: -8s; }
+.aurora span:nth-child(3){ left: 30%; bottom: -5%; background: radial-gradient(circle, rgba(106, 92, 255, 0.45), transparent 62%); animation-duration: 38s; animation-delay: -16s; }
+@keyframes drift{
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(8vmax, 6vmax) scale(1.15); }
+  100% { transform: translate(-6vmax, 10vmax) scale(0.95); }
+}
+#field{
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
 
 img{ display: block; max-width: 100%; }
 h1, h2, h3, p, dl, dd, ol, ul, figure{ margin: 0; }
@@ -78,8 +124,8 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   top: 8px;
   z-index: 100;
   padding: 12px 16px;
-  background: var(--ink);
-  color: var(--bg);
+  background: var(--g-ember);
+  color: var(--ink-dark);
   font-weight: 600;
   text-decoration: none;
 }
@@ -99,13 +145,18 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   justify-content: center;
   min-height: 48px;
   padding: 0 22px;
-  background: var(--accent);
-  color: var(--ink);
+  background: var(--grad-warm);
+  background-size: 200% 100%;
+  background-position: 0% 0;
+  color: var(--ink-dark);
   font-weight: 600;
   text-decoration: none;
-  transition: transform 160ms var(--ease-out), background-color 160ms ease;
+  transition: transform 160ms var(--ease-out), background-position 400ms var(--ease-out), box-shadow 200ms ease;
 }
-.btn:hover{ background: #ffeb2e; }
+.btn:hover{
+  background-position: 100% 0;
+  box-shadow: 0 10px 30px -8px rgba(255, 70, 80, 0.6);
+}
 .btn:active{ transform: scale(0.97); }
 
 /* ============ TOP BAR ============ */
@@ -118,7 +169,8 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--bg);
+  background: linear-gradient(rgba(11, 11, 13, 0.92), rgba(11, 11, 13, 0.6));
+  backdrop-filter: blur(10px);
   transition: transform 300ms var(--ease-out);
 }
 .bar.is-hidden{ transform: translateY(-100%); }
@@ -151,7 +203,7 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
 }
 
 .hero-text{
-  grid-column: 1 / span 4;
+  grid-column: 1 / span 3;
   align-self: end;
   display: grid;
   gap: 16px;
@@ -169,32 +221,54 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
 .hero-text .btn{ margin-top: 8px; }
 
 .hero-frame{
-  grid-column: 5 / span 4;
+  grid-column: 4 / span 6;
   grid-row: 1;
   min-height: 0;
   display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
   justify-items: center;
+  gap: 12px;
 }
-.hero-pictures{
+/* the particle photo: no box, it floats on the glow */
+.hero-stage{
   position: relative;
-  height: 100%;
-  max-height: 640px;
-  aspect-ratio: 2 / 3;
-  max-width: 100%;
-  overflow: hidden;
-  background: var(--surface);
-}
-.hero-pictures > *{
-  position: absolute;
-  inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  opacity: 0;
-  transform: scale(1.06);
-  transition: opacity 900ms ease, transform 6s linear;
+  min-height: 320px;
+  cursor: crosshair;
+  outline-offset: 6px;
 }
-.hero-pictures > .is-on{ opacity: 1; transform: scale(1); }
+/* the photo dissolves into the dark at its edges instead of ending in a hard box */
+.hero-stage canvas,
+.hero-still{
+  -webkit-mask-image: radial-gradient(ellipse 62% 60% at 50% 50%, #000 45%, transparent 100%);
+  mask-image: radial-gradient(ellipse 62% 60% at 50% 50%, #000 45%, transparent 100%);
+}
+.hero-stage canvas{ position: absolute; inset: 0; display: block; }
+.hero-still{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+
+.sound-btn{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 18px 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  color: var(--ink);
+  font-weight: 600;
+  font-size: var(--step-small);
+  transition: background-color 200ms ease, transform 160ms var(--ease-out);
+}
+.sound-btn:hover{ background: rgba(255, 255, 255, 0.12); }
+.sound-btn:active{ transform: scale(0.97); }
+.sound-btn svg{ width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.sound-btn[aria-pressed="true"]{
+  background: var(--grad);
+  box-shadow: 0 0 calc(12px + var(--level) * 60px) rgba(255, 60, 110, 0.7);
+  color: #fff;
+}
 .tc{ font-variant-numeric: tabular-nums; }
 
 .hero-side{
@@ -213,11 +287,17 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   width: 9px; height: 9px;
   margin-right: 8px;
   border-radius: 50%;
-  background: #2f9e5b;
+  background: #3ddc84;
+  box-shadow: 0 0 10px #3ddc84;
   vertical-align: 0.06em;
 }
 
+.hero-text, .hero-frame, .hero-side{ position: relative; z-index: 2; }
 .name{
+  /* the name sits under the controls above it and never catches clicks */
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
   grid-column: 1 / -1;
   grid-row: 2;
   font-family: var(--display);
@@ -235,7 +315,17 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   /* clips only below the line, so the rise-in never crops the top of a letter */
   clip-path: inset(-40% -4% 0 -4%);
 }
-.name-inner{ display: inline-block; }
+/* the name glows: a slow warm gradient runs through the letters */
+.name-inner{
+  display: inline-block;
+  background: linear-gradient(100deg, var(--ink) 0%, var(--ink) 30%, var(--g-peach) 45%, var(--g-ember) 55%, var(--g-pink) 65%, var(--ink) 80%, var(--ink) 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sheen 9s ease-in-out infinite alternate;
+}
+@keyframes sheen{ from{ background-position: 100% 0; } to{ background-position: 0% 0; } }
 .js .name-inner{ transform: translateY(102%); }
 .is-ready .name-inner{
   transform: none;
@@ -261,9 +351,9 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   font-weight: 600;
   transition: background-color 160ms ease, color 160ms ease, transform 160ms var(--ease-out);
 }
-.chip:hover{ background: #dfe3e0; }
+.chip:hover{ background: #26242c; }
 .chip:active{ transform: scale(0.97); }
-.chip[aria-pressed="true"]{ background: var(--ink); color: var(--bg); }
+.chip[aria-pressed="true"]{ background: var(--grad); color: #fff; }
 
 .work-stage{ position: relative; }
 /* the frame rides in a track as tall as the list, so it can never hang past it */
@@ -303,7 +393,7 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(247, 247, 247, 0.32);
+  background: rgba(11, 11, 13, 0.38);
   z-index: 2;
 }
 .work-fact{
@@ -421,10 +511,17 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
 .about-caption{ margin-top: 16px; color: var(--muted); font-size: var(--step-small); }
 
 /* ============ CREDITS ============ */
+/* credits sit on a full field of the gradient, in dark ink */
 .credits{
-  background: var(--accent);
+  position: relative;
+  background: var(--grad);
+  background-size: 160% 160%;
+  animation: field 18s ease-in-out infinite alternate;
+  color: var(--ink-dark);
   padding: var(--section) var(--margin);
 }
+.credits :focus-visible{ outline-color: var(--ink-dark); }
+@keyframes field{ from{ background-position: 0% 30%; } to{ background-position: 100% 70%; } }
 .credits-col{
   width: min(620px, 100%);
   margin: 0 auto;
@@ -440,7 +537,7 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   margin-bottom: 20px;
 }
 .credits-list{ display: grid; gap: 6px; }
-.credit{ background: var(--accent-step); }
+.credit{ background: rgba(11, 11, 13, 0.14); }
 .credit summary{
   min-height: 56px;
   padding: 14px 18px;
@@ -454,7 +551,7 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   transition: background-color 160ms ease;
 }
 .credit summary::-webkit-details-marker{ display: none; }
-.credit summary:hover{ background: #dcc70b; }
+.credit summary:hover{ background: rgba(11, 11, 13, 0.1); }
 .credit-time{ font-variant-numeric: tabular-nums; font-weight: 400; }
 .plus{ position: relative; width: 14px; height: 14px; justify-self: end; }
 .plus::before,
@@ -473,8 +570,12 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
 /* ============ CONTACT ============ */
 .contact{
   min-height: 78svh;
-  background: var(--ink);
-  color: var(--bg);
+  /* the glow gathers at the foot of the page, under the email */
+  background:
+    radial-gradient(80% 60% at 50% 115%, rgba(255, 90, 31, 0.55), transparent 70%),
+    radial-gradient(50% 50% at 90% 100%, rgba(255, 46, 126, 0.35), transparent 70%),
+    radial-gradient(45% 45% at 8% 95%, rgba(106, 92, 255, 0.35), transparent 70%);
+  color: var(--ink);
   padding: calc(var(--bar-h) + 40px) var(--margin) 24px;
   display: grid;
   grid-template-rows: auto 1fr auto auto;
@@ -500,7 +601,12 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   transition: color 200ms ease;
 }
 .contact-email span{ display: block; width: fit-content; white-space: nowrap; }
-.contact-email:hover{ color: var(--accent); }
+.contact-email:hover span{
+  background: var(--grad-warm);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 .contact-foot{
   display: flex;
   justify-content: space-between;
@@ -510,8 +616,8 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
 }
 .socials{ display: flex; flex-wrap: wrap; gap: 8px 28px; }
 .socials a{ font-weight: 600; text-decoration: none; }
-.socials a:hover{ color: var(--accent); }
-.fine{ font-size: var(--step-small); color: #b9c4bd; }
+.socials a:hover{ color: var(--g-peach); }
+.fine{ font-size: var(--step-small); color: var(--muted); }
 
 /* ============ MODAL ============ */
 .modal{
@@ -521,7 +627,8 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   display: grid;
   place-items: center;
   padding: 16px;
-  background: rgba(13, 42, 28, 0.94);
+  background: rgba(6, 6, 8, 0.9);
+  backdrop-filter: blur(6px);
   opacity: 0;
   visibility: hidden;
   transition: opacity 200ms ease, visibility 0s linear 200ms;
@@ -536,7 +643,7 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   width: min(1080px, 100%);
   max-height: calc(100svh - 32px);
   overflow: auto;
-  background: var(--bg);
+  background: var(--surface);
   transform: translateY(16px) scale(0.98);
   transition: transform 320ms var(--ease-out);
   box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.45); /* taste-skill-ignore: the dialog really floats */
@@ -548,11 +655,11 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   place-items: center;
   width: 44px;
   height: 44px;
-  background: var(--bg);
+  background: rgba(11, 11, 13, 0.75);
   color: var(--ink);
   transition: transform 160ms var(--ease-out), background-color 160ms ease;
 }
-.icon-btn:hover{ background: var(--accent); }
+.icon-btn:hover{ background: var(--g-ember); color: var(--ink-dark); }
 .icon-btn:active{ transform: scale(0.94); }
 .icon-btn svg,
 .album-toggle svg{
@@ -566,16 +673,16 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
 
 .modal-thumb{
   aspect-ratio: 16 / 9;
-  background: var(--ink);
+  background: #000;
   position: relative;
   overflow: hidden;
 }
 .modal-thumb > *{ position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: cover; }
 
-.ig-frame{ background: var(--ink); display: flex; justify-content: center; padding: 56px 16px 16px; }
+.ig-frame{ background: #000; display: flex; justify-content: center; padding: 56px 16px 16px; }
 .ig-frame iframe{ width: min(540px, 100%); height: min(720px, 70svh); border: 0; background: #fff; }
 
-.album-stage{ position: relative; aspect-ratio: 3 / 2; background: var(--ink); overflow: hidden; }
+.album-stage{ position: relative; aspect-ratio: 3 / 2; background: #000; overflow: hidden; }
 .album-main img{
   position: absolute; inset: 0;
   width: 100%; height: 100%;
@@ -655,7 +762,7 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   .hero-text{ grid-column: 1 / span 6; grid-row: 2; align-self: start; }
   .hero-side{ grid-column: 1 / span 6; grid-row: 3; align-self: start; }
   .hero-frame{ grid-column: 7 / -1; grid-row: 2 / span 2; align-self: start; }
-  .hero-pictures{ width: 100%; height: auto; max-height: none; aspect-ratio: 4 / 5; }
+  .hero-stage{ aspect-ratio: 4 / 5; height: auto; }
 }
 
 @media (max-width: 760px){
@@ -674,7 +781,7 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   .name{ order: 1; font-size: 31vw; line-height: 0.86; margin: 0; }
   .hero-text{ order: 2; max-width: none; }
   .hero-frame{ order: 3; }
-  .hero-pictures{ width: 100%; height: auto; aspect-ratio: 4 / 5; max-height: none; }
+  .hero-stage{ aspect-ratio: 4 / 5; height: auto; }
   .hero-side{ order: 4; }
   .hero-slate div{ grid-template-columns: 6em 1fr; gap: 12px; }
 
@@ -723,6 +830,6 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   .js .rv{ transform: none; }
   .js .rv.in{ transition: opacity 300ms ease; }
   .js .name-inner{ transform: none; }
-  .hero-pictures > *{ transform: none; transition: opacity 300ms ease; }
+  .aurora span, .name-inner{ animation: none; }
   .modal-card{ transform: none; }
 }
