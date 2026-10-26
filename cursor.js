@@ -74,7 +74,8 @@
   function labelFor(el){
     if(el.closest(".clip, .screen, .screen-btn")) return "Play";
     if(el.closest(".stack")) return "View";
-    if(el.closest("#hero-stage, #portrait-stage")) return "Next";
+    if(el.closest("#hero-stage")) return "Next";
+    if(el.closest("#portrait-stage")) return "Focus";
     if(el.tagName === "A" && el.target === "_blank") return "Open";
     if(el.tagName === "A") return "Go";
     return "";

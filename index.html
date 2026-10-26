@@ -110,13 +110,14 @@
   <ul class="photos-row" id="photos-row"><!-- photography albums from content.work --></ul>
 </section>
 
-<!-- ============ ABOUT: the portrait shedding dust, the story beside it ============ -->
+<!-- ============ ABOUT: the portrait in halftone under a lens, the story beside it ============ -->
 <section id="about" class="about" aria-labelledby="about-title">
   <figure class="portrait-wrap rv">
-    <!-- you, cut out on black; particles.js makes the outline drift away as dust -->
-    <div class="portrait-stage" id="portrait-stage" role="button" tabindex="0" aria-label="Scatter the portrait">
+    <!-- your photo printed as dots; portrait.js puts a lens over it that follows the cursor -->
+    <div class="portrait-stage" id="portrait-stage" role="button" tabindex="0" aria-label="Portrait">
       <canvas id="portrait-particles" aria-hidden="true"></canvas>
     </div>
+    <figcaption class="portrait-credit" id="portrait-credit"></figcaption>
   </figure>
   <div class="about-body">
     <h2 class="about-title rv" id="about-title">About</h2>
@@ -205,6 +206,7 @@
 <script src="content.js"></script>
 <script src="script.js"></script>
 <script src="particles.js"></script>
+<script src="portrait.js"></script>
 <script src="cursor.js"></script>
 </body>
 </html>

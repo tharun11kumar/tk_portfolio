@@ -181,18 +181,20 @@ as few entries as you want — the layout adjusts automatically. Numbers in
 `stats` count up the first time a visitor scrolls to them.
 
 ### 7. Your portrait
-The About section shows `about.portrait` as a cut-out on black whose outline
-keeps drifting away as dust; where the cursor touches it, it breaks into
-pixels, and clicking scatters it and puts it back together. Use a picture with
-the background already removed (a PNG or WebP with transparency), e.g.
-`assets/portrait.webp`:
+The About section prints `about.portrait` as warm halftone dots, like a
+magazine page. A lens follows the cursor and shows the real photo through it,
+slightly magnified; with no cursor it drifts around your face, and a click
+pulls focus. Any photo works (it is cropped to 4:5), e.g. `assets/portrait.jpg`:
 ```js
 about: {
-  portrait: "assets/portrait.webp",
+  portrait: "assets/portrait.jpg",
+  portraitCredit: "Photo by @mxtthhii",
   ...
 }
 ```
-Set it to `null` to hide the portrait.
+If you swap the photo, the lens rests at `FACE` near the top of `portrait.js`
+(a share of the width and height); move it to where the face is.
+Set `portrait` to `null` to hide the portrait.
 
 ### 8. Shortening the giant wordmark (optional)
 The landing screen sets your `name` in huge type, broken onto two lines. If

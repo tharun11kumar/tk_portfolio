@@ -323,7 +323,7 @@ const CONTENT = {
       title: "Black & White",
       year: "2026",
       role: "Photographer",
-      description: "Frames in black and white, each with its own title.",
+      description: "A woman at the end of a long corridor, one hand lifted into her hair, her body bending into a single curve against the window light. Everything else falls to shadow.",
       // A photo can be just its path, or { src, caption } to give it a title
       // that shows under it in the slideshow.
       images: [
@@ -441,9 +441,11 @@ const CONTENT = {
   ],
 
   about: {
-    // Your portrait: a cut-out on a transparent ground (PNG or WebP) works best;
-    // its outline drifts away as dust. Leave it null to hide the portrait.
-    portrait: null,
+    // Your portrait, printed as warm halftone dots with a lens that follows
+    // the cursor and shows the real photo. Leave it null to hide the portrait.
+    portrait: "assets/portrait.jpg",
+    // who took it; shown small under the portrait ("" to leave it off)
+    portraitCredit: "Photo by @mxtthhii",
     paragraphs: [
       "I'm Tharun — an editor, photographer and filmmaker based out of Chennai, currently studying Electrical and Electronics Engineering at VIT.",
       "The engineering side isn't separate from the creative side — I like building the tools I edit with as much as I like editing. A beat-detection cutter for Premiere Pro started as a way to save myself time; it's now part of how I work.",

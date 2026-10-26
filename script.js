@@ -862,7 +862,7 @@ function renderAbout(){
   document.getElementById("kit").innerHTML =
     (CONTENT.about.kit || []).map(k => `<li>${esc(k)}</li>`).join("");
 
-  // the portrait (a cut-out on a transparent ground) is drawn by particles.js
+  // the portrait is drawn by portrait.js
   window.TK_PORTRAIT = CONTENT.about.portrait || null;
   const wrap = document.querySelector(".portrait-wrap");
   if(!window.TK_PORTRAIT){
@@ -870,7 +870,10 @@ function renderAbout(){
     wrap.hidden = true;
     document.getElementById("about").classList.add("no-portrait");
   }
-  else document.getElementById("portrait-stage").setAttribute("aria-label", `${CONTENT.name}. Click to scatter the portrait`);
+  else {
+    document.getElementById("portrait-stage").setAttribute("aria-label", `Portrait of ${CONTENT.name}`);
+    document.getElementById("portrait-credit").textContent = CONTENT.about.portraitCredit || "";
+  }
 }
 
 /* ---------- STATS ---------- */

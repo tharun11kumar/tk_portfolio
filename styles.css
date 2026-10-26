@@ -664,7 +664,7 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   row-gap: 48px;
   align-items: center;
 }
-/* the portrait: a cut-out on black, its outline drifting off as dust */
+/* the portrait: printed in halftone dots, with a lens that shows the photo */
 .portrait-wrap{ grid-column: 1 / span 6; margin: 0; position: relative; }
 .portrait-wrap::before{
   /* a low warm light behind the figure */
@@ -678,13 +678,30 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
 .portrait-stage{
   position: relative;
   width: 100%;
-  aspect-ratio: 960 / 1143;
+  max-width: 560px;
+  aspect-ratio: 4 / 5;
   max-height: 86svh;
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #0c0b0d;
+  box-shadow: 0 0 0 1px rgba(244, 241, 234, 0.08), 0 30px 80px -30px rgba(0, 0, 0, 0.8);
   cursor: crosshair;
   outline-offset: 6px;
+  touch-action: pan-y;
 }
 .portrait-stage canvas,
-.portrait-still{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: bottom; }
+.portrait-still{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.portrait-credit{
+  max-width: 560px;
+  margin: 12px auto 0;
+  font-family: var(--text);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(244, 241, 234, 0.5);
+}
+.portrait-credit:empty{ display: none; }
 
 .about-body{ grid-column: 7 / -1; display: grid; gap: 28px; align-content: center; }
 .about-title{

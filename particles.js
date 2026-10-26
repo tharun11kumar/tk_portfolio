@@ -3,7 +3,6 @@
    - The hero shows your photos; where the cursor (or a finger)
      touches, the picture breaks into pixels that drift back, and
      every few seconds a ripple carries it to the next photo.
-   - The About portrait sheds a constant dust off its outline.
    - A light field of drifting points sits behind the whole page
      and also gets out of the cursor's way.
    - "React to sound" listens to the microphone (nothing is
@@ -107,15 +106,14 @@
 
   /* ============================================================
      PIXEL STAGES — a picture that turns to pixels only when it moves
-     Used twice: the hero (your photos, one after another) and the
-     About portrait (you, cut out on black).
+     Used by the hero (your photos, one after another).
      At rest the stage shows the real picture at full resolution.
      Each cell of a fine grid over it is also a particle: when the
      cursor pushes a cell, or the ripple of a change reaches it, that
      cell lifts out of the picture as a coloured pixel, moves, and
      drops back once it has settled.
      The hero adds loose pixels drifting around its faded edges and
-     corners; the portrait sheds a constant dust off its outline.
+     corners.
      ============================================================ */
   function smooth(t){ t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); }
   // the oval fade: full strength in the middle, exactly nothing a little inside every edge
@@ -614,15 +612,6 @@
     pixelStage({ stage, canvas, sources, caption, fit: "cover", vignette: true, ring: true, cycle: true });
   }
 
-  function initPortrait(){
-    const stage = document.getElementById("portrait-stage");
-    const canvas = document.getElementById("portrait-particles");
-    const src = window.TK_PORTRAIT;
-    if(!stage || !canvas || !src) return;
-    if(reduced){ stillInstead(stage, canvas, src, "", "portrait-still"); return; }
-    pixelStage({ stage, canvas, sources: [{ src }], fit: "contain", vignette: false, dust: true, density: 0.8 });
-  }
-
   /* ============================================================
      FIELD — the drifting points behind the whole page
      ============================================================ */
@@ -698,6 +687,6 @@
     initSoundButton();
     initField();
     // wait a frame so the hero has its final size before sampling the photo
-    requestAnimationFrame(() => requestAnimationFrame(() => { initHero(); initPortrait(); }));
+    requestAnimationFrame(() => requestAnimationFrame(() => { initHero(); }));
   });
 })();
