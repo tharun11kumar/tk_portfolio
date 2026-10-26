@@ -79,10 +79,10 @@ const CONTENT = {
   // The numbers band under About. Each is a short value + a short label.
   // Keep values short (e.g. "2+", "10+", "3") so they read well at large size.
   stats: [
-    { value: "2+", label: "Years editing" },
+    { value: "3+", label: "Years editing" },
     { value: "10+", label: "Projects shipped" },
     { value: "3", label: "Tools mastered" },
-    { value: "1", label: "Club led" },
+    { value: "5+", label: "Awards" },
   ],
 
   // The three doors on the landing "gate" screen.
