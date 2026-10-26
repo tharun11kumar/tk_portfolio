@@ -274,23 +274,6 @@ function initials(name){
   return String(name || "").split(/\s+/).filter(Boolean).map(w => w[0]).join("").toUpperCase().slice(0, 3);
 }
 
-/* ---------- TIMECODE (ambient detail, respects reduced motion) ---------- */
-function startTimecode(){
-  const node = document.getElementById("timecode");
-  if(reducedMotion()){ node.style.display = "none"; return; }
-  let frames = 0;
-  setInterval(() => {
-    if(document.hidden) return;
-    frames++;
-    const f = frames % 24;
-    const totalSec = Math.floor(frames / 24);
-    const h = String(Math.floor(totalSec / 3600)).padStart(2, "0");
-    const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, "0");
-    const s = String(totalSec % 60).padStart(2, "0");
-    node.textContent = `${h}:${m}:${s}:${String(f).padStart(2, "0")}`;
-  }, 1000 / 24);
-}
-
 /* ============================================================
    WORK — one screen plays the silent preview of a piece, with its
    details beside it. When a preview ends the next piece starts on
@@ -1077,7 +1060,6 @@ document.addEventListener("DOMContentLoaded", () => {
   renderHistory();
   initRoles();
   renderContact();
-  startTimecode();
   initBar();
   initAlbumControls();
   initStatsCountUp();
