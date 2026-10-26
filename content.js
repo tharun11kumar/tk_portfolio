@@ -145,7 +145,7 @@ const CONTENT = {
     },
     {
       category: "edits",
-      title: "Final 1",
+      title: "The Batman",
       year: "2026",
       role: "Editor",
       description: "",
