@@ -106,14 +106,19 @@
 
   /* ============================================================
      HERO — photos made of particles
-     Every particle is one pixel of a fine grid over the photo, so
-     at rest the picture reads clearly; the particles only show
-     themselves when something pushes them. Positions live in
-     typed arrays and are drawn into a small pixel buffer that is
-     scaled up crisply, which keeps tens of thousands of them fast.
+     The photo is a fine grid of particles, one per cell, so at rest
+     the picture reads clearly. Each photo fades to nothing toward its
+     edges, so there is never a hard frame. Changing photo sends a
+     ripple out from where you clicked (or the centre): as it reaches
+     a particle, that particle pops out, takes the new photo's colour
+     and settles back into place. Positions live in typed arrays and
+     are drawn into a small pixel buffer scaled up crisply, which keeps
+     tens of thousands of particles fast.
      ============================================================ */
-  function sampleImage(img, w, h, step){
-    const gw = Math.ceil(w / step), gh = Math.ceil(h / step);
+  function smooth(t){ t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); }
+
+  // every grid cell of the photo, with its colour and how visible it is
+  function sampleImage(img, gw, gh){
     const off = document.createElement("canvas");
     off.width = gw; off.height = gh;
     const g = off.getContext("2d", { willReadFrequently: true });
@@ -123,18 +128,23 @@
     const dw = img.naturalWidth * s, dh = img.naturalHeight * s;
     g.drawImage(img, (gw - dw) / 2, (gh - dh) / 2, dw, dh);
     const data = g.getImageData(0, 0, gw, gh).data;
-    const hx = [], hy = [], r = [], gg = [], b = [], al = [];
+    const n = gw * gh;
+    const r = new Uint8Array(n), gg = new Uint8Array(n), b = new Uint8Array(n), al = new Float32Array(n);
     for(let y = 0; y < gh; y++){
+      const ny = (y + 0.5) / gh * 2 - 1;
       for(let x = 0; x < gw; x++){
-        const i = (y * gw + x) * 4;
-        const lum = (0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]) / 255;
-        if(lum < 0.025) continue;          // true black stays empty, so the glow shows through
-        hx.push((x + 0.5) * step); hy.push((y + 0.5) * step);
-        r.push(data[i]); gg.push(data[i + 1]); b.push(data[i + 2]);
-        al.push(Math.min(1, lum * 10));
+        const i = y * gw + x, k = i * 4;
+        const nx = (x + 0.5) / gw * 2 - 1;
+        // a soft oval vignette: full strength in the middle, nothing at the edges
+        const e = Math.sqrt(nx * nx * 0.92 + ny * ny);
+        const vig = smooth((1.04 - e) / 0.72);
+        const lum = (0.2126 * data[k] + 0.7152 * data[k + 1] + 0.0722 * data[k + 2]) / 255;
+        r[i] = data[k]; gg[i] = data[k + 1]; b[i] = data[k + 2];
+        // true black stays see-through so the glow shows through it
+        al[i] = Math.min(1, lum * 10) * vig;
       }
     }
-    return { n: hx.length, hx, hy, r, g: gg, b, al };
+    return { r, g: gg, b, al };
   }
 
   function initHero(){
@@ -164,17 +174,11 @@
     let current = -1;
     const images = sources.map(s => { const im = new Image(); im.decoding = "async"; im.src = s.src; return im; });
 
-    // particle state, one slot per particle
-    let N = 0, keep = 0;
-    let X, Y, VX, VY, HX, HY, CR, CG, CB, TR, TG, TB, A, TA, LEAVING;
-    function alloc(n){
-      const f = () => new Float32Array(n);
-      const old = { X, Y, VX, VY, CR, CG, CB, A };
-      X = f(); Y = f(); VX = f(); VY = f(); HX = f(); HY = f();
-      CR = f(); CG = f(); CB = f(); TR = f(); TG = f(); TB = f(); A = f(); TA = f();
-      LEAVING = new Uint8Array(n);
-      return old;
-    }
+    // particle state: particle i always belongs to grid cell i
+    let N = 0;
+    let X, Y, VX, VY, HX, HY, CR, CG, CB, A, TR, TG, TB, TA, WAIT;
+    // the next photo, held until the ripple reaches each particle
+    let NR, NG, NB, NA;
 
     function size(){
       rect = stage.getBoundingClientRect();
@@ -191,49 +195,47 @@
       canvas.style.width = W + "px"; canvas.style.height = H + "px";
       g.setTransform(DPR, 0, 0, DPR, 0, 0);
       g.imageSmoothingEnabled = false;
+
+      N = gw * gh;
+      const f = () => new Float32Array(N);
+      X = f(); Y = f(); VX = f(); VY = f(); HX = f(); HY = f();
+      CR = f(); CG = f(); CB = f(); A = f(); TR = f(); TG = f(); TB = f(); TA = f(); WAIT = f();
+      NR = f(); NG = f(); NB = f(); NA = f();
+      for(let i = 0; i < N; i++){
+        HX[i] = (i % gw + 0.5) * step;
+        HY[i] = (((i / gw) | 0) + 0.5) * step;
+        // the first photo assembles out of a scattered cloud, like it is being developed
+        X[i] = Math.random() * W; Y[i] = Math.random() * H;
+        WAIT[i] = -1;
+      }
     }
 
-    function form(index, scatter){
+    // ox, oy: where the ripple starts (the click, or the middle)
+    function form(index, ox, oy, instant){
       const img = images[index];
       if(!img.complete || !img.naturalWidth){
-        img.addEventListener("load", () => form(index, scatter), { once: true });
+        img.addEventListener("load", () => form(index, ox, oy, instant), { once: true });
         return;
       }
       current = index;
       if(caption) caption.textContent = sources[index].title || "";
-      const s = sampleImage(img, W, H, step);
-      // shuffle the targets so the hand-over between photos is a swarm, not a wipe
-      const order = new Uint32Array(s.n);
-      for(let i = 0; i < s.n; i++) order[i] = i;
-      for(let i = s.n - 1; i > 0; i--){ const j = (Math.random() * (i + 1)) | 0; const t = order[i]; order[i] = order[j]; order[j] = t; }
-
-      const oldN = N;
-      const total = Math.max(s.n, oldN);
-      const old = alloc(total);
-      for(let i = 0; i < total; i++){
-        const had = i < oldN && old.X;
-        if(had && !scatter){
-          X[i] = old.X[i]; Y[i] = old.Y[i]; VX[i] = old.VX[i]; VY[i] = old.VY[i];
-          CR[i] = old.CR[i]; CG[i] = old.CG[i]; CB[i] = old.CB[i]; A[i] = old.A[i];
+      const s = sampleImage(img, gw, gh);
+      if(ox == null){ ox = W / 2; oy = H / 2; }
+      // the ripple crosses the whole stage in about 0.9 seconds
+      const reach = Math.hypot(Math.max(ox, W - ox), Math.max(oy, H - oy)) || 1;
+      for(let i = 0; i < N; i++){
+        NR[i] = s.r[i]; NG[i] = s.g[i]; NB[i] = s.b[i]; NA[i] = s.al[i];
+        if(instant){
+          TR[i] = CR[i] = NR[i]; TG[i] = CG[i] = NG[i]; TB[i] = CB[i] = NB[i]; TA[i] = NA[i]; A[i] = 0;
+          WAIT[i] = -1;
         } else {
-          // newcomers fly in from anywhere around the stage
-          X[i] = Math.random() * W; Y[i] = Math.random() * H * 1.4 - H * 0.2;
-          VX[i] = 0; VY[i] = 0; A[i] = 0;
-        }
-        if(i < s.n){
-          const k = order[i];
-          HX[i] = s.hx[k]; HY[i] = s.hy[k];
-          TR[i] = s.r[k]; TG[i] = s.g[k]; TB[i] = s.b[k]; TA[i] = s.al[k];
-          if(!had || scatter){ CR[i] = TR[i]; CG[i] = TG[i]; CB[i] = TB[i]; }
-          LEAVING[i] = 0;
-        } else {
-          // particles the new photo does not need drift off and fade out
-          LEAVING[i] = 1; TA[i] = 0;
-          VX[i] += (Math.random() - 0.5) * 6; VY[i] += (Math.random() - 0.5) * 6;
+          const d = Math.hypot(HX[i] - ox, HY[i] - oy) / reach;
+          WAIT[i] = d * 900 + Math.random() * 90;
         }
       }
-      N = total; keep = s.n;
+      rippleX = ox; rippleY = oy; rippleReach = reach;
     }
+    let rippleX = 0, rippleY = 0, rippleReach = 1;
 
     let visible = true, raf = null, last = performance.now(), sinceSwap = 0;
     const HOLD = 6500;
@@ -241,9 +243,10 @@
     function tick(now){
       raf = null;
       if(!visible) return;
-      const dt = Math.min(48, now - last) / 16.67; last = now;
+      const ms = Math.min(48, now - last); last = now;
+      const dt = ms / 16.67;
       readSound();
-      sinceSwap += dt * 16.67;
+      sinceSwap += ms;
       if(sinceSwap > HOLD && images.length > 1 && !pointerOnStage()){
         sinceSwap = 0;
         form((current + 1) % images.length);
@@ -255,35 +258,40 @@
       const lvl = sound.level, bass = sound.bass, shake = lvl > 0.02;
       const cx = W / 2, cy = H / 2;
       // friction scaled to the frame time, so slow screens settle as fast as quick ones
-      const damp = Math.pow(0.84, dt), ease = 1 - Math.pow(0.9, dt), fade = ease * 0.7;
+      const damp = Math.pow(0.84, dt), ease = 1 - Math.pow(0.86, dt), fade = 1 - Math.pow(0.9, dt);
 
       pix32.fill(0);
-      let leavingAlive = 0;
       for(let i = 0; i < N; i++){
-        let ax, ay;
-        if(LEAVING[i]){
-          ax = 0; ay = 0.02;
-        } else {
-          ax = (HX[i] - X[i]) * 0.055; ay = (HY[i] - Y[i]) * 0.055;
-          if(push){
-            const dx = X[i] - mx, dy = Y[i] - my, d2 = dx * dx + dy * dy;
-            if(d2 < R2){
-              const d = Math.sqrt(d2) || 1, f = 1 - d / R;
-              ax += (dx / d) * f * f * 9; ay += (dy / d) * f * f * 9;
-            }
+        // the ripple arrives: pop out away from where it started, then take the new colour
+        if(WAIT[i] >= 0){
+          WAIT[i] -= ms;
+          if(WAIT[i] < 0){
+            TR[i] = NR[i]; TG[i] = NG[i]; TB[i] = NB[i]; TA[i] = NA[i];
+            const dx = HX[i] - rippleX, dy = HY[i] - rippleY, d = Math.sqrt(dx * dx + dy * dy) || 1;
+            const kick = 2 + 3.5 * (1 - Math.min(1, d / rippleReach));
+            VX[i] += (dx / d) * kick + (Math.random() - 0.5) * 2.5;
+            VY[i] += (dy / d) * kick + (Math.random() - 0.5) * 2.5 - 1.2;
           }
-          if(shake){
-            const ox = HX[i] - cx, oy = HY[i] - cy, od = Math.sqrt(ox * ox + oy * oy) || 1;
-            ax += (ox / od) * bass * 2.4 + (Math.random() - 0.5) * lvl * 5;
-            ay += (oy / od) * bass * 2.4 + (Math.random() - 0.5) * lvl * 5;
+        }
+        let ax = (HX[i] - X[i]) * 0.055, ay = (HY[i] - Y[i]) * 0.055;
+        if(push){
+          const dx = X[i] - mx, dy = Y[i] - my, d2 = dx * dx + dy * dy;
+          if(d2 < R2){
+            const d = Math.sqrt(d2) || 1, f = 1 - d / R;
+            ax += (dx / d) * f * f * 9; ay += (dy / d) * f * f * 9;
           }
+        }
+        if(shake){
+          const ox = HX[i] - cx, oy = HY[i] - cy, od = Math.sqrt(ox * ox + oy * oy) || 1;
+          ax += (ox / od) * bass * 2.4 + (Math.random() - 0.5) * lvl * 5;
+          ay += (oy / od) * bass * 2.4 + (Math.random() - 0.5) * lvl * 5;
         }
         const vx = (VX[i] + ax * dt) * damp, vy = (VY[i] + ay * dt) * damp;
         VX[i] = vx; VY[i] = vy;
         const x = X[i] += vx * dt, y = Y[i] += vy * dt;
         CR[i] += (TR[i] - CR[i]) * ease; CG[i] += (TG[i] - CG[i]) * ease; CB[i] += (TB[i] - CB[i]) * ease;
         const a = A[i] += (TA[i] - A[i]) * fade;
-        if(LEAVING[i]){ if(a < 0.02) continue; leavingAlive++; }
+        if(a < 0.01) continue;
 
         const gx = (x / step) | 0, gy = (y / step) | 0;
         if(gx < 0 || gy < 0 || gx >= gw || gy >= gh) continue;
@@ -294,9 +302,10 @@
           const t = Math.min(1, (Math.sqrt(sp) - 0.6) / 6);
           r += (255 - r) * t; gg += (110 - gg) * t; b += (50 - b) * t;
         }
-        pix32[gy * gw + gx] = ((a * 255) << 24) | ((b | 0) << 16) | ((gg | 0) << 8) | (r | 0);
+        // where two particles land on one cell, the brighter one shows
+        const j = gy * gw + gx, prev = pix32[j] >>> 24, al = (a * 255) | 0;
+        if(al >= prev) pix32[j] = (al << 24) | ((b | 0) << 16) | ((gg | 0) << 8) | (r | 0);
       }
-      if(!leavingAlive && N > keep) N = keep;
 
       bg.putImageData(pix, 0, 0);
       g.clearRect(0, 0, W, H);
@@ -312,8 +321,7 @@
     function start(){ if(!raf){ last = performance.now(); raf = requestAnimationFrame(tick); } }
 
     size();
-    // the first photo assembles out of a scattered cloud, like it is being developed
-    form(0, true);
+    form(0, null, null, true);
     start();
 
     new IntersectionObserver((entries) => {
@@ -322,8 +330,13 @@
     }).observe(stage);
     document.addEventListener("visibilitychange", () => { if(!document.hidden) start(); });
 
-    // clicking the stage moves to the next photo
-    stage.addEventListener("click", () => { sinceSwap = 0; form((current + 1) % images.length); });
+    // clicking the stage sends the next photo out from where you clicked
+    stage.addEventListener("click", (e) => {
+      sinceSwap = 0;
+      const r = stage.getBoundingClientRect();
+      const fromPointer = e.detail > 0;   // a keyboard "click" has no position
+      form((current + 1) % images.length, fromPointer ? e.clientX - r.left : null, fromPointer ? e.clientY - r.top : null);
+    });
     stage.addEventListener("keydown", (e) => {
       if(e.key === "Enter" || e.key === " "){ e.preventDefault(); sinceSwap = 0; form((current + 1) % images.length); }
     });
@@ -333,9 +346,9 @@
       clearTimeout(rt);
       rt = setTimeout(() => {
         // phones fire resize when the address bar slides; only rebuild on a real width change
-        if(window.innerWidth === lastW && N){ rect = stage.getBoundingClientRect(); return; }
+        if(window.innerWidth === lastW){ rect = stage.getBoundingClientRect(); return; }
         lastW = window.innerWidth;
-        size(); form(Math.max(0, current), true);
+        size(); form(Math.max(0, current), null, null, true);
       }, 150);
     });
     window.addEventListener("scroll", () => { rect = stage.getBoundingClientRect(); }, { passive: true });

@@ -238,8 +238,7 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
   cursor: crosshair;
   outline-offset: 6px;
 }
-/* the photo dissolves into the dark at its edges instead of ending in a hard box */
-.hero-stage canvas,
+/* the still photo (reduced motion) fades out at its edges like the particle one */
 .hero-still{
   -webkit-mask-image: radial-gradient(ellipse 62% 60% at 50% 50%, #000 45%, transparent 100%);
   mask-image: radial-gradient(ellipse 62% 60% at 50% 50%, #000 45%, transparent 100%);
