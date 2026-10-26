@@ -181,6 +181,9 @@
     // particle state: particle i always belongs to grid cell i
     let N = 0;
     let X, Y, VX, VY, HX, HY, CR, CG, CB, A, TR, TG, TB, TA, WAIT, NEW;
+    // REST: how far each cell has eased from pixel back into the photo (0 to 1);
+    // ROLD: the old photo's share of a cell, fading out after the ripple passes
+    let REST, ROLD;
     let NR, NG, NB, NA;   // the next picture, held until the ripple reaches each particle
 
     let floaters = [];    // hero: loose pixels drifting around the faded edges and corners
@@ -208,6 +211,7 @@
       X = f(); Y = f(); VX = f(); VY = f(); HX = f(); HY = f();
       CR = f(); CG = f(); CB = f(); A = f(); TR = f(); TG = f(); TB = f(); TA = f(); WAIT = f();
       NR = f(); NG = f(); NB = f(); NA = f(); NEW = new Uint8Array(N);
+      REST = f(); ROLD = f();
       for(let i = 0; i < N; i++){
         HX[i] = (i % gw + 0.5) * step;
         HY[i] = (((i / gw) | 0) + 0.5) * step;
@@ -293,7 +297,7 @@
     function drawMasked(off, maskCanvas, layer){
       const o = off.g;
       o.globalCompositeOperation = "copy";
-      o.imageSmoothingEnabled = false;
+      o.imageSmoothingEnabled = true;
       o.drawImage(maskCanvas, 0, 0, gw * step, gh * step);
       o.globalCompositeOperation = "source-in";
       o.drawImage(layer, 0, 0, W, H);
@@ -322,22 +326,32 @@
       const cx = W / 2, cy = H / 2;
       // friction scaled to the frame time, so slow screens settle as fast as quick ones
       const damp = Math.pow(0.84, dt), ease = 1 - Math.pow(0.86, dt), fade = 1 - Math.pow(0.9, dt);
-      const SOLID = 0xff000000 | 0;
+      // a settling pixel melts into the photo over about half a second; a cell that
+      // starts moving lets go of the photo quickly
+      const kIn = 1 - Math.pow(0.9, dt), kOut = 1 - Math.pow(0.62, dt), kOld = 1 - Math.pow(0.8, dt);
 
       uMove.fill(0); uNew.fill(0); uOld.fill(0);
-      let moving = 0, restingNew = 0, restingOld = 0, waiting = 0;
+      let moving = 0, showingNew = 0, showingOld = 0, waiting = 0;
       for(let i = 0; i < N; i++){
         // the ripple arrives: pop out away from where it started, then take the new colour
         if(WAIT[i] >= 0){
           waiting++;
           WAIT[i] -= ms;
           if(WAIT[i] < 0){
-            TR[i] = NR[i]; TG[i] = NG[i]; TB[i] = NB[i]; TA[i] = NA[i]; NEW[i] = 1;
+            TR[i] = NR[i]; TG[i] = NG[i]; TB[i] = NB[i]; TA[i] = NA[i];
+            // the old photo's share of this cell fades out rather than vanishing
+            if(!NEW[i]){ ROLD[i] = REST[i]; REST[i] = 0; }
+            NEW[i] = 1;
             const dx = HX[i] - rippleX, dy = HY[i] - rippleY, d = Math.sqrt(dx * dx + dy * dy) || 1;
             const kick = 2 + 3.5 * (1 - Math.min(1, d / rippleReach));
             VX[i] += (dx / d) * kick + (Math.random() - 0.5) * 2.5;
             VY[i] += (dy / d) * kick + (Math.random() - 0.5) * 2.5 - 1.2;
           }
+        }
+        if(ROLD[i] > 0){
+          ROLD[i] -= ROLD[i] * kOld;
+          if(ROLD[i] < 0.01) ROLD[i] = 0;
+          else { uOld[i] = ((ROLD[i] * 255) | 0) << 24; showingOld++; }
         }
         // empty cells of a cut-out have nothing to show; skip their physics
         if(TA[i] < 0.01 && A[i] < 0.01 && WAIT[i] < 0){ continue; }
@@ -360,17 +374,25 @@
         CR[i] += (TR[i] - CR[i]) * ease; CG[i] += (TG[i] - CG[i]) * ease; CB[i] += (TB[i] - CB[i]) * ease;
         const a = A[i] += (TA[i] - A[i]) * fade;
 
-        // at rest: back in its own cell, still, and done changing colour
+        // settled: back near its own cell, nearly still, and nearly done changing colour
         const off = Math.abs(x - HX[i]) + Math.abs(y - HY[i]);
-        const resting = off < 0.6 && vx * vx + vy * vy < 0.01 && Math.abs(a - TA[i]) < 0.03 &&
-          Math.abs(CR[i] - TR[i]) + Math.abs(CG[i] - TG[i]) + Math.abs(CB[i] - TB[i]) < 6;
-        if(resting){
-          if(NEW[i]){ uNew[i] = SOLID; restingNew++; }
-          else { uOld[i] = SOLID; restingOld++; }
-          continue;
+        const settled = off < 1.2 && vx * vx + vy * vy < 0.04 && Math.abs(a - TA[i]) < 0.06 &&
+          Math.abs(CR[i] - TR[i]) + Math.abs(CG[i] - TG[i]) + Math.abs(CB[i] - TB[i]) < 14;
+        let rest = REST[i];
+        rest += settled ? (1 - rest) * kIn : -rest * kOut;
+        if(rest > 0.995) rest = 1; else if(rest < 0.005) rest = 0;
+        REST[i] = rest;
+
+        // the photo's share of the cell
+        if(rest > 0){
+          const m = ((rest * 255) | 0) << 24;
+          if(NEW[i]){ uNew[i] = m; showingNew++; } else { uOld[i] = m; showingOld++; }
         }
+        if(rest === 1) continue;
         moving++;
-        if(a < 0.01) continue;
+        // the pixel's share, fading as the photo takes over
+        const pa = a * (1 - rest);
+        if(pa < 0.01) continue;
         const gx = (x / step) | 0, gy = (y / step) | 0;
         if(gx < 0 || gy < 0 || gx >= gw || gy >= gh) continue;
         // fast movers glow warm, like sparks
@@ -380,18 +402,18 @@
           const t = Math.min(1, (Math.sqrt(sp) - 0.6) / 6);
           r += (255 - r) * t; gg += (110 - gg) * t; b += (50 - b) * t;
         }
-        const j = gy * gw + gx, prev = uMove[j] >>> 24, al = (a * 255) | 0;
+        const j = gy * gw + gx, prev = uMove[j] >>> 24, al = (pa * 255) | 0;
         if(al >= prev) uMove[j] = (al << 24) | ((b | 0) << 16) | ((gg | 0) << 8) | (r | 0);
       }
-      if(morphing && !waiting && !restingOld){ morphing = false; oldLayer = null; }
+      if(morphing && !waiting && !showingOld){ morphing = false; oldLayer = null; }
 
       g.clearRect(0, 0, W, H);
-      if(!moving && !restingOld){
+      if(!moving && !showingOld){
         // everything at rest: the real picture, untouched
         g.drawImage(newLayer, 0, 0, W, H);
       } else {
-        if(restingOld && oldLayer){ bOld.g.putImageData(pOld, 0, 0); drawMasked(offA, bOld.c, oldLayer); }
-        if(restingNew){ bNew.g.putImageData(pNew, 0, 0); drawMasked(offB, bNew.c, newLayer); }
+        if(showingOld && oldLayer){ bOld.g.putImageData(pOld, 0, 0); drawMasked(offA, bOld.c, oldLayer); }
+        if(showingNew){ bNew.g.putImageData(pNew, 0, 0); drawMasked(offB, bNew.c, newLayer); }
         bMove.g.putImageData(pMove, 0, 0);
         g.imageSmoothingEnabled = false;
         g.drawImage(bMove.c, 0, 0, gw * step, gh * step);
