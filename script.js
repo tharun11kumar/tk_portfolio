@@ -979,14 +979,7 @@ function renderContact(){
     ? `<span aria-hidden="true">${esc(email.slice(0, at + 1))}</span><span aria-hidden="true">${esc(email.slice(at + 1))}</span>`
     : `<span aria-hidden="true">${esc(email)}</span>`;
 
-  const slate = (CONTENT.hero && CONTENT.hero.slate) || [];
-  const based = slate.find(r => /based|city|location/i.test(r.label));
-  const status = slate.find(r => /status/i.test(r.label));
-  document.getElementById("contact-where").textContent =
-    [status && status.value, based && based.value].filter(Boolean).join(" · ");
-
-  document.getElementById("socials").innerHTML = (CONTENT.contact.socials || []).map(s =>
-    `<li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)}</a></li>`).join("");
+  // the status line and the socials live on the deck at the foot (deck.js)
   document.getElementById("year").textContent = new Date().getFullYear();
   document.getElementById("fine-name").textContent = CONTENT.name;
 }

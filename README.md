@@ -265,6 +265,11 @@ Put your own media anywhere you like under `assets/` — e.g.
   six seconds (or when a visitor clicks it). Moving the cursor or a finger
   over it scatters the particles; they drift back. Bright subjects on dark
   grounds read best. Leave `hero.photos` empty to use every album photo.
+- **The control deck at the foot of the page** (`deck.js`). Its keys link to
+  the sections, your Instagram and LinkedIn (from `contact.socials`), copy
+  your email (@) or open a new email (HIRE ME). The little screen shows the
+  status and city from `hero.slate`; the round scope traces "TK" and shows a
+  different wave for each key you point at.
 - **The drifting points and the glow** behind the whole page also move out of
   the cursor's way. All of this lives in `particles.js`.
 - **Until a piece has a real still, it gets a drawn cover**: a timeline for
