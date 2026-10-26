@@ -915,13 +915,15 @@ function initStatsCountUp(){
 function renderHistory(){
   const wrap = document.getElementById("timeline");
   wrap.innerHTML = "";
+  // the line the roles hang from; it draws itself down as you scroll
+  wrap.insertAdjacentHTML("beforeend", `<span class="roles-line" aria-hidden="true"><span></span></span>`);
   CONTENT.history.forEach((h, i) => {
     // a role with a description opens and closes; one without is a plain row
     const hasBody = !!(h.body && h.body.trim());
-    const item = el(hasBody ? "details" : "div", "credit rv" + (hasBody ? "" : " credit-static"));
-    item.style.setProperty("--d", `${i * 70}ms`);
+    const item = el(hasBody ? "details" : "div", "credit" + (hasBody ? "" : " credit-static"));
     if(i === 0) item.open = true;
     item.innerHTML = `
+      <span class="credit-dot" aria-hidden="true"></span>
       <${hasBody ? "summary" : "div"} class="credit-row">
         <span class="credit-time">${esc(h.time)}</span>
         <span class="credit-role"><span class="credit-title">${esc(h.title)}</span>${h.org ? `<span class="credit-org">${esc(h.org)}</span>` : ""}</span>
@@ -930,6 +932,47 @@ function renderHistory(){
       ${hasBody ? `<p class="credit-body">${esc(h.body)}</p>` : ""}`;
     wrap.appendChild(item);
   });
+}
+
+/* ROLES — the big word's letters rise in one after another; the line on the
+   left draws down with the scroll, and each role slides in and lights up as
+   the line reaches it */
+function initRoles(){
+  const section = document.getElementById("roles");
+  const word = document.getElementById("credits-word");
+  const text = word.textContent;
+  word.setAttribute("aria-label", text);
+  word.innerHTML = [...text].map((ch, i) =>
+    `<span class="rl" aria-hidden="true" style="--i:${i}"><span>${esc(ch)}</span></span>`).join("");
+
+  const list = document.getElementById("timeline");
+  const line = list.querySelector(".roles-line > span");
+  const rows = [...list.querySelectorAll(".credit")];
+  if(reducedMotion() || !("IntersectionObserver" in window)){
+    section.classList.add("is-in"); rows.forEach(r => r.classList.add("lit"));
+    line.style.transform = "scaleY(1)";
+    return;
+  }
+  new IntersectionObserver((entries) => {
+    if(entries[0].isIntersecting) section.classList.add("is-in");
+  }, { threshold: 0.25 }).observe(section);
+
+  let queued = false;
+  const update = () => {
+    queued = false;
+    const r = list.getBoundingClientRect();
+    // the line's tip follows a point 62% of the way down the screen
+    const tip = window.innerHeight * 0.62 - r.top;
+    const p = Math.max(0, Math.min(1, tip / r.height));
+    line.style.transform = `scaleY(${p.toFixed(4)})`;
+    rows.forEach(row => {
+      const y = row.offsetTop + 28;
+      row.classList.toggle("lit", tip >= y);
+    });
+  };
+  window.addEventListener("scroll", () => { if(!queued){ queued = true; requestAnimationFrame(update); } }, { passive: true });
+  window.addEventListener("resize", update);
+  update();
 }
 
 function fitCreditsWord(){
@@ -1029,6 +1072,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderAbout();
   renderStats();
   renderHistory();
+  initRoles();
   renderContact();
   startTimecode();
   initBar();
@@ -1039,7 +1083,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // fonts change the measurements, so fit again once they have arrived
   (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => {
     fitAll();
-    requestAnimationFrame(() => document.documentElement.classList.add("is-ready"));
+    // the hero name rises as the opening iris finishes
+    const ready = () => requestAnimationFrame(() => document.documentElement.classList.add("is-ready"));
+    (window.__tkIntro || Promise.resolve()).then(ready);
     initReveal();
   });
   // a face that finishes loading late changes the widths again

@@ -121,29 +121,46 @@
   // the oval fade: full strength in the middle, exactly nothing a little inside every edge
   function vignette(nx, ny){ return smooth((0.96 - Math.sqrt(nx * nx * 0.96 + ny * ny)) / 0.7); }
 
-  // the picture fitted to the stage at full resolution (cover or contain),
-  // faded at its edges for the hero; a cut-out keeps its own transparency
-  function buildLayer(img, w, h, fit, fade){
+  // the oval fade as an alpha mask the size of the stage
+  function vignetteMask(w, h){
     const c = document.createElement("canvas");
     c.width = w; c.height = h;
-    const g = c.getContext("2d", { willReadFrequently: true });
-    g.imageSmoothingQuality = "high";
-    const s = (fit === "contain" ? Math.min : Math.max)(w / img.naturalWidth, h / img.naturalHeight);
-    const dw = img.naturalWidth * s, dh = img.naturalHeight * s;
-    g.drawImage(img, (w - dw) / 2, fit === "contain" ? h - dh : (h - dh) / 2, dw, dh);
-    if(fade){
-      const d = g.getImageData(0, 0, w, h);
-      const px = d.data;
-      for(let y = 0; y < h; y++){
-        const ny = (y + 0.5) / h * 2 - 1;
-        for(let x = 0; x < w; x++){
-          const i = (y * w + x) * 4 + 3;
-          px[i] = px[i] * vignette((x + 0.5) / w * 2 - 1, ny);
-        }
+    const g = c.getContext("2d");
+    const d = g.createImageData(w, h);
+    const px = d.data;
+    for(let y = 0; y < h; y++){
+      const ny = (y + 0.5) / h * 2 - 1;
+      for(let x = 0; x < w; x++){
+        const i = (y * w + x) * 4;
+        px[i] = px[i + 1] = px[i + 2] = 255;
+        px[i + 3] = 255 * vignette((x + 0.5) / w * 2 - 1, ny);
       }
-      g.putImageData(d, 0, 0);
     }
+    g.putImageData(d, 0, 0);
     return c;
+  }
+
+  // a picture or a video frame fitted to the stage (cover or contain), faded at
+  // its edges for the hero; a cut-out keeps its own transparency
+  function paintLayer(c, media, fit, mask){
+    const w = c.width, h = c.height, g = c.getContext("2d");
+    const mw = media.videoWidth || media.naturalWidth, mh = media.videoHeight || media.naturalHeight;
+    const s = (fit === "contain" ? Math.min : Math.max)(w / mw, h / mh);
+    const dw = mw * s, dh = mh * s;
+    g.globalCompositeOperation = "copy";
+    g.imageSmoothingQuality = "high";
+    g.drawImage(media, (w - dw) / 2, fit === "contain" ? h - dh : (h - dh) / 2, dw, dh);
+    if(mask){
+      g.globalCompositeOperation = "destination-in";
+      g.drawImage(mask, 0, 0);
+    }
+    g.globalCompositeOperation = "source-over";
+    return c;
+  }
+  function buildLayer(media, w, h, fit, mask){
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    return paintLayer(c, media, fit, mask);
   }
 
   // the same picture at grid resolution: one colour and opacity per particle
@@ -176,7 +193,19 @@
     let pMove, pNew, pOld, uMove, uNew, uOld;
     let newLayer = null, oldLayer = null;
     let current = -1;
-    const images = sources.map(s => { const im = new Image(); im.decoding = "async"; im.src = s.src; return im; });
+    // a source is a photo ({ src }) or a silent looping video ({ video })
+    const images = sources.map(s => {
+      if(s.video){
+        const v = document.createElement("video");
+        v.muted = true; v.loop = true; v.playsInline = true; v.preload = "auto";
+        v.src = s.video;
+        return v;
+      }
+      const im = new Image(); im.decoding = "async"; im.src = s.src; return im;
+    });
+    const isVideo = (m) => m && m.tagName === "VIDEO";
+    const isReady = (m) => isVideo(m) ? m.readyState >= 2 : (m.complete && m.naturalWidth);
+    let mask = null, live = null;
 
     // particle state: particle i always belongs to grid cell i
     let N = 0;
@@ -205,6 +234,7 @@
       canvas.width = W * DPR; canvas.height = H * DPR;
       canvas.style.width = W + "px"; canvas.style.height = H + "px";
       g.setTransform(DPR, 0, 0, DPR, 0, 0);
+      mask = cfg.vignette ? vignetteMask(W, H) : null;
 
       N = gw * gh;
       const f = () => new Float32Array(N);
@@ -260,13 +290,19 @@
     // ox, oy: where the ripple starts (the click, or the middle)
     function form(index, ox, oy, instant){
       const img = images[index];
-      if(!img.complete || !img.naturalWidth){
-        img.addEventListener("load", () => form(index, ox, oy, instant), { once: true });
+      if(!isReady(img)){
+        img.addEventListener(isVideo(img) ? "loadeddata" : "load", () => form(index, ox, oy, instant), { once: true });
+        if(isVideo(img)) img.load();
         return;
       }
+      // the video that was playing rests; the new one starts from the top
+      const prev = images[current];
+      if(isVideo(prev) && prev !== img) setTimeout(() => prev.pause(), 1200);
       current = index;
       if(caption) caption.textContent = sources[index].title || "";
-      const layer = buildLayer(img, W, H, fit, cfg.vignette);
+      if(isVideo(img)){ try{ img.currentTime = 0; }catch(e){} img.play().catch(() => {}); }
+      const layer = buildLayer(img, W, H, fit, mask);
+      live = isVideo(img) ? img : null;
       const s = sampleLayer(layer, gw, gh);
       if(cfg.dust) findEdges(s);
       oldLayer = (instant || !newLayer) ? null : newLayer;
@@ -291,7 +327,7 @@
     let rippleX = 0, rippleY = 0, rippleReach = 1, morphing = false;
 
     let visible = true, raf = null, last = performance.now(), sinceSwap = 0;
-    const HOLD = 6500;
+    const HOLD = 6500, HOLD_VIDEO = 9000;
 
     // cut a picture down to the cells marked in a grid mask, then lay it on the stage
     function drawMasked(off, maskCanvas, layer){
@@ -314,7 +350,10 @@
       const dt = ms / 16.67;
       readSound();
       sinceSwap += ms;
-      if(cfg.cycle && sinceSwap > HOLD && images.length > 1 && !pointerOnStage()){
+      // a playing video keeps its layer current
+      if(live && !live.paused && live.readyState >= 2) paintLayer(newLayer, live, fit, mask);
+      const hold = live ? HOLD_VIDEO : HOLD;
+      if(cfg.cycle && sinceSwap > hold && images.length > 1 && !pointerOnStage()){
         sinceSwap = 0;
         form((current + 1) % images.length);
       }
@@ -563,12 +602,13 @@
     const stage = document.getElementById("hero-stage");
     const canvas = document.getElementById("hero-particles");
     if(!stage || !canvas) return;
-    const sources = (window.TK_HERO_PHOTOS || []).filter(p => p && p.src);
+    const sources = (window.TK_HERO_PHOTOS || []).filter(p => p && (p.src || p.video));
     const caption = document.getElementById("hero-caption-title");
     if(!sources.length) return;
     if(reduced){
-      stillInstead(stage, canvas, sources[0].src, sources[0].title, "hero-still");
-      if(caption) caption.textContent = sources[0].title || "";
+      const first = sources.find(s => s.src) || sources[0];
+      stillInstead(stage, canvas, first.src || "", first.title, "hero-still");
+      if(caption) caption.textContent = first.title || "";
       return;
     }
     pixelStage({ stage, canvas, sources, caption, fit: "cover", vignette: true, ring: true, cycle: true });

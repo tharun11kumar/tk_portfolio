@@ -64,15 +64,31 @@ const CONTENT = {
     // name shows under it; leave it "" for your own words.
     blurb: "“Cinema is a matter of what's in the frame and what's out.”",
     blurbBy: "Martin Scorsese",
-    // The photos the first screen builds out of particles, in order. Bright
-    // subjects on dark grounds work best. Leave the list empty to use every
-    // photo from your albums below.
+    // What the first screen shows, in order: photos ({ src }) and silent video
+    // previews ({ video }). Bright subjects on dark grounds work best. Leave the
+    // list empty to use every photo from your albums below.
     photos: [
       { src: "assets/photos/black-and-white/curves-beyond-lightroom.jpg", title: "Curves beyond Lightroom" },
+      { video: "assets/films/aastha-gill-preview.mp4", title: "Aastha Gill" },
+      { src: "assets/photos/pondicherry/06.jpg", title: "Pondicherry" },
+      { src: "assets/photos/stella-mun-26/03.jpg", title: "Stella MUN ’26" },
+      { video: "assets/edits/vitcmun-afm-preview.mp4", title: "VITCMUN ’25 Aftermovie" },
+      { src: "assets/photos/pondicherry/01.jpg", title: "Pondicherry" },
       { src: "assets/photos/srmmun-25/03.jpg", title: "SRMMUN ’25" },
+      { video: "assets/edits/final-mix-preview.mp4", title: "Vibrance ’24 Teaser" },
+      { src: "assets/photos/pondicherry/07.jpg", title: "Pondicherry" },
       { src: "assets/photos/stella-mun-26/10.jpg", title: "Stella MUN ’26" },
-      { src: "assets/photos/sigma-105mm/05.jpg", title: "Through a Sigma 105mm" },
-      { src: "assets/photos/vlsmun-26/01.jpg", title: "VLSMUN ’26" },
+      { src: "assets/photos/pondicherry/03.jpg", title: "Pondicherry" },
+      { video: "assets/edits/vibrance24-trailer-preview.mp4", title: "Vibrance ’24 Trailer" },
+      { src: "assets/photos/stella-mun-26/09.jpg", title: "Stella MUN ’26" },
+      { src: "assets/photos/pondicherry/02.jpg", title: "Pondicherry" },
+      { src: "assets/photos/srmvmun-25/07.jpg", title: "SRMVMUN ’25" },
+      { src: "assets/photos/pondicherry/05.jpg", title: "Pondicherry" },
+      { src: "assets/photos/srmvmun-25/10.jpg", title: "SRMVMUN ’25" },
+      { src: "assets/photos/pondicherry/08.jpg", title: "Pondicherry" },
+      { src: "assets/photos/srmmun-25/01.jpg", title: "SRMMUN ’25" },
+      { src: "assets/photos/pondicherry/04.jpg", title: "Pondicherry" },
+      { src: "assets/photos/srmvmun-25/08.jpg", title: "SRMVMUN ’25" },
     ],
   },
 
@@ -440,8 +456,7 @@ const CONTENT = {
     email: "hello@tharunkumar.example",
     socials: [
       { label: "Instagram", url: "https://www.instagram.com/framesoftk/" },
-      { label: "YouTube",   url: "https://youtube.com/" },
-      { label: "LinkedIn",  url: "https://linkedin.com/" },
+      { label: "LinkedIn",  url: "https://www.linkedin.com/in/tharun-kumar-91710728b/" },
     ],
   },
 };

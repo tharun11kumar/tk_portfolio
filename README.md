@@ -249,6 +249,16 @@ Put your own media anywhere you like under `assets/` — e.g.
 `assets/photos/<album>/`, `assets/edits/`, `assets/portrait.jpg`.
 
 ## Notes
+- **The opening animation** (`intro.js`) plays the camera turning on: a
+  viewfinder with REC and a running timecode, your name pulling into focus,
+  then a shutter flash and an iris opening onto the page. A click, a key or a
+  scroll skips it; visitors with "reduce motion" on never see it.
+- **The cursor is a small camera** (`cursor.js`) on computers with a mouse:
+  its lens zooms and focus brackets close in over anything clickable, a REC
+  light blinks over the photo stages, and a click fires a shutter flash.
+  Phones and tablets keep their normal touch behaviour.
+- **The first screen can show video too.** In `hero.photos`, list photos as
+  `{ src, title }` and silent previews as `{ video, title }`; they play in turn.
 - **The particle photo on the first screen.** It builds the photos listed in
   `hero.photos` in `content.js` out of particles, one after another, every
   six seconds (or when a visitor clicks it). Moving the cursor or a finger
