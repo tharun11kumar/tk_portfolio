@@ -41,6 +41,11 @@ URL any more. All of these work and get converted for you:
 | Vimeo | `https://vimeo.com/ID` |
 | Google Drive | `https://drive.google.com/file/d/ID/view?usp=sharing` |
 
+**A video file kept with the site** (an `.mp4` under `assets/films/`) plays
+in the browser's own player; point `video` at its path and `image` at a cover
+frame. Keep these files under about 50 MB; GitHub refuses anything over
+100 MB, so put longer films on Drive or YouTube instead.
+
 **For Google Drive, set the file's sharing to "Anyone with the link"** —
 otherwise visitors hit a permission wall instead of your video. Drive also
 doesn't hand out thumbnails, so set `image` to a cover frame if you want

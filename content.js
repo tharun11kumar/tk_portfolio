@@ -109,6 +109,16 @@ const CONTENT = {
     },
     {
       category: "films",
+      title: "Vibrance ’25: Day 2",
+      year: "2025",
+      role: "Film",
+      description: "The second night of Vibrance ’25 at VIT Chennai: the crowd, the lights and the performers on stage.",
+      image: "assets/films/vibrance25-day2-cover.jpg",
+      video: "assets/films/vibrance25-day2.mp4",
+      link: "https://www.instagram.com/reel/DGo-agtz-e_/",
+    },
+    {
+      category: "films",
       title: "IntraMUN: Batman",
       year: "2025",
       role: "Film",

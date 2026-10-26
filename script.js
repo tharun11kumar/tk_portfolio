@@ -84,6 +84,10 @@ function resolveVideo(url){
   return url; // already an embed URL, or some other player
 }
 
+function isVideoFile(url){
+  return /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(String(url));
+}
+
 function instagramEmbed(url){
   const code = getInstagramCode(url);
   return code ? `https://www.instagram.com/p/${code}/embed` : null;
@@ -541,7 +545,10 @@ function openModal(item){
     const thumb = document.getElementById("modal-thumb");
     const videoSrc = resolveVideo(item.video);
     thumb.innerHTML = "";
-    if(videoSrc){
+    if(videoSrc && isVideoFile(videoSrc)){
+      // a video file hosted with the site plays in the browser's own player
+      thumb.innerHTML = `<video src="${esc(videoSrc)}" controls playsinline preload="metadata"${item.image ? ` poster="${esc(item.image)}"` : ""}></video>`;
+    } else if(videoSrc){
       thumb.innerHTML = `<iframe src="${esc(videoSrc)}" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture" title="${esc(item.title)}"></iframe>`;
     } else {
       thumb.appendChild(pictureFor(item, 1600, 900, item.title));
