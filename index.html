@@ -73,21 +73,24 @@
   </h1>
 </section>
 
-<!-- ============ WORK: names passing a held frame ============ -->
+<!-- ============ WORK: a screen, and the work in labelled rows ============ -->
 <section id="work" class="work" aria-labelledby="work-title">
-  <h2 class="work-title rv" id="work-title">Work</h2>
-  <div class="work-filter rv" style="--d:80ms" role="group" aria-label="Filter work" id="tabs"><!-- content.categories --></div>
-
-  <div class="work-stage">
-    <div class="work-track">
-      <div class="work-hold" aria-hidden="true">
-        <div class="work-frame" id="work-frame"></div>
-        <p class="work-fact work-fact-l" id="work-fact-l"></p>
-        <p class="work-fact work-fact-r" id="work-fact-r"></p>
-      </div>
-    </div>
-    <ol class="work-list" id="work-list"><!-- content.work --></ol>
+  <div class="work-head">
+    <h2 class="work-title rv" id="work-title">Work</h2>
+    <div class="work-filter rv" style="--d:80ms" role="group" aria-label="Filter work" id="tabs"><!-- content.categories --></div>
   </div>
+
+  <div class="screen-wrap rv" style="--d:120ms">
+    <button class="screen" id="screen" type="button">
+      <span class="screen-media" id="screen-media"></span>
+      <span class="screen-play" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>
+      </span>
+    </button>
+    <div class="screen-info" id="screen-info" aria-live="polite"></div>
+  </div>
+
+  <ul class="reels" id="reels"><!-- content.work --></ul>
 </section>
 
 <!-- ============ PHOTOGRAPHY: albums as stacks of prints ============ -->

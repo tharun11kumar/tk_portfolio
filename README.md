@@ -54,6 +54,10 @@ something better than the drawn placeholder in the work frame.
 ### 2. Adding a film (same as edits)
 Identical to above, just set `category: "films"` instead.
 
+Give a film a `type` to file it under a heading, e.g. `type: "Glimpses"` or
+`type: "Promo"`. Each type gets its own filter in the Work section, grouped
+under "Films". A film without a type shows under "Other".
+
 ### 2b. Pulling a piece straight from Instagram
 If the work already lives on your Instagram, you don't need to re-upload it.
 Add `instagram` with the post or reel link and it plays inside your site —

@@ -93,6 +93,8 @@ const CONTENT = {
     { id: "films",       label: "Films",       hint: "Short films & direction" },
   ],
 
+  // A film or edit can also have a "type" (e.g. "Glimpses", "Promo"); the Work
+  // section groups pieces under these names.
   // Your portfolio pieces. Add as many as you want — the grid and
   // the filter tabs update automatically. "category" must match one
   // of the category ids above.
@@ -109,21 +111,23 @@ const CONTENT = {
     },
     {
       category: "films",
-      title: "Vibrance ’25: Day 2",
+      type: "Glimpses",
+      title: "Aastha Gill",
       year: "2025",
       role: "Film",
-      description: "The second night of Vibrance ’25 at VIT Chennai: the crowd, the lights and the performers on stage.",
+      description: "Aastha Gill live on Day 2 of Vibrance ’25 at VIT Chennai: the crowd, the lights and her set on stage.",
       image: "assets/films/vibrance25-day2-cover.jpg",
       video: "assets/films/vibrance25-day2.mp4",
       link: "https://www.instagram.com/reel/DGo-agtz-e_/",
     },
     {
       category: "films",
+      type: "Promo",
       title: "IntraMUN: Batman",
       year: "2025",
       role: "Film",
-      description: "A short film made for VITC IntraMUN.",
-      image: null,
+      description: "A black-and-white promo film for VITC IntraMUN.",
+      image: "assets/films/intramun-batman-cover.jpg",
       video: "https://drive.google.com/file/d/1DFTK1oxDOhGwuga5EZlPulD6EVMbicXm/view",
       link: null,
     },
