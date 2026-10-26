@@ -427,7 +427,7 @@ const CONTENT = {
   about: {
     // Your portrait: a cut-out on a transparent ground (PNG or WebP) works best;
     // its outline drifts away as dust. Leave it null to hide the portrait.
-    portrait: "assets/portrait.webp",
+    portrait: null,
     paragraphs: [
       "I'm Tharun — an editor, photographer and filmmaker based out of Chennai, currently studying Electrical and Electronics Engineering at VIT.",
       "The engineering side isn't separate from the creative side — I like building the tools I edit with as much as I like editing. A beat-detection cutter for Premiere Pro started as a way to save myself time; it's now part of how I work.",

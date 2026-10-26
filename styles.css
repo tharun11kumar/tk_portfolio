@@ -727,6 +727,19 @@ a{ color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 1px
 .kit h3{ font-size: var(--step-body); font-weight: 600; margin-bottom: 6px; }
 .kit li{ line-height: 1.6; }
 
+/* without a portrait: title and the opening line on the left, the rest on the right */
+.about.no-portrait .about-body{
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  row-gap: 32px;
+  align-items: start;
+}
+.about.no-portrait .about-title{ grid-column: 1 / span 6; }
+.about.no-portrait .about-lead{ grid-column: 1 / span 6; grid-row: 2 / span 2; max-width: 24ch; font-size: clamp(1.75rem, 1rem + 2vw, 2.75rem); line-height: 1.15; }
+.about.no-portrait .about-more{ grid-column: 7 / -1; grid-row: 2; }
+.about.no-portrait .about-facts{ grid-column: 7 / -1; grid-row: 3; }
+
 /* ============ ROLES ============ */
 /* roles sit on a full field of the gradient, in dark ink */
 .credits{
@@ -1026,6 +1039,10 @@ details.credit summary:hover{ background: rgba(11, 11, 13, 0.1); }
   .portrait-stage{ max-height: 70svh; }
   .about-lead{ font-size: 1.375rem; line-height: 1.25; }
   .about-facts{ grid-template-columns: 1fr; gap: 28px; }
+  .about.no-portrait .about-title, .about.no-portrait .about-lead,
+  .about.no-portrait .about-more, .about.no-portrait .about-facts{ grid-column: 1 / -1; grid-row: auto; }
+  .about.no-portrait .about-lead{ font-size: 1.5rem; }
+  .about.no-portrait .about-body{ grid-template-columns: minmax(0, 1fr); }
   .about-more{ columns: 1; margin-top: 32px; }
 
   .credit-row{ grid-template-columns: 1fr 18px; padding: 14px 16px; row-gap: 2px; }

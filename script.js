@@ -865,7 +865,11 @@ function renderAbout(){
   // the portrait (a cut-out on a transparent ground) is drawn by particles.js
   window.TK_PORTRAIT = CONTENT.about.portrait || null;
   const wrap = document.querySelector(".portrait-wrap");
-  if(!window.TK_PORTRAIT) wrap.hidden = true;
+  if(!window.TK_PORTRAIT){
+    // no portrait: the story takes the whole width, in two columns
+    wrap.hidden = true;
+    document.getElementById("about").classList.add("no-portrait");
+  }
   else document.getElementById("portrait-stage").setAttribute("aria-label", `${CONTENT.name}. Click to scatter the portrait`);
 }
 
