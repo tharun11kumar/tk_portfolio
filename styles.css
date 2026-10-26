@@ -25,9 +25,6 @@
   --grad: linear-gradient(115deg, var(--g-ember) 0%, var(--g-pink) 48%, var(--g-violet) 100%);
   --grad-warm: linear-gradient(100deg, var(--g-peach), var(--g-ember) 45%, var(--g-pink));
 
-  /* live sound level, 0–1, written by particles.js */
-  --level: 0;
-  --bass: 0;
 
   /* type */
   --display: "Anton", "Arial Narrow", sans-serif;
@@ -80,9 +77,7 @@ body{
   z-index: -2;
   pointer-events: none;
   filter: blur(70px) saturate(1.2);
-  opacity: calc(0.55 + var(--level) * 0.45);
-  transform: scale(calc(1 + var(--bass) * 0.12));
-  transition: opacity 120ms linear, transform 120ms linear;
+  opacity: 0.55;
 }
 .aurora span{
   position: absolute;
@@ -1301,18 +1296,6 @@ html.has-cam-cursor *{ cursor: none !important; }
 .tcb-rec b{ width: 6px; height: 6px; border-radius: 50%; background: #ff2e2e; box-shadow: 0 0 6px #ff2e2e; animation: tcb-blink 1s steps(2, jump-none) infinite; }
 @keyframes tcb-blink{ 0%{ opacity: 1; } 100%{ opacity: 0.15; } }
 .tcb-dir{ color: #ff7a3c; letter-spacing: 0; }
-/* the audio meter: two channels, lit by the microphone */
-.tcb-meter{ display: grid; gap: 2px; width: 34px; }
-.tcb-meter i{ display: block; height: 2px; border-radius: 1px; background: rgba(244, 241, 234, 0.14); overflow: hidden; }
-.tcb-meter i::after{
-  content: "";
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, #3ddc84 0 60%, #ffd23f 60% 85%, #ff2e2e 85%);
-  transform: scaleX(var(--m, 0));
-  transform-origin: left;
-}
-.tcb-row-right{ display: flex; align-items: center; gap: 8px; }
 .tcb-time{
   margin-top: 5px;
   font: 600 17px/1 var(--text);

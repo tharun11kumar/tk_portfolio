@@ -5,10 +5,6 @@
      every few seconds a ripple carries it to the next photo.
    - A light field of drifting points sits behind the whole page
      and also gets out of the cursor's way.
-   - Sound: after the visitor's first click the site asks for the
-     microphone (nothing is recorded or sent anywhere); the volume
-     then stirs the drifting points and swells the glow. The hero
-     photo stays out of it.
    Everything holds still for visitors with "reduce motion" on.
    You should not need to edit this file.
    ============================================================ */
@@ -18,7 +14,7 @@
   const fine = window.matchMedia("(pointer: fine)").matches;
   const DPR = Math.min(window.devicePixelRatio || 1, 2);
 
-  /* ---------- shared pointer + sound state ---------- */
+  /* ---------- shared pointer state ---------- */
   const pointer = { x: -9999, y: -9999, active: false };
   window.addEventListener("pointermove", (e) => {
     pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true;
@@ -28,71 +24,6 @@
   }, { passive: true });
   document.addEventListener("pointerleave", () => { pointer.active = false; });
   window.addEventListener("touchend", () => { pointer.active = false; }, { passive: true });
-
-  const sound = { level: 0, bass: 0, on: false };
-  window.TKSound = sound;
-
-  /* ============================================================
-     SOUND — microphone level, once the visitor allows it
-     ============================================================ */
-  let audio = null;
-  async function startSound(){
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false } });
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const src = ctx.createMediaStreamSource(stream);
-    const analyser = ctx.createAnalyser();
-    analyser.fftSize = 1024;
-    analyser.smoothingTimeConstant = 0.7;
-    src.connect(analyser);
-    const wave = new Uint8Array(analyser.fftSize);
-    const freq = new Uint8Array(analyser.frequencyBinCount);
-    audio = { stream, ctx, analyser, wave, freq };
-    sound.on = true;
-    if(ctx.state === "suspended"){
-      const wake = () => { ctx.resume(); window.removeEventListener("pointerdown", wake, true); window.removeEventListener("keydown", wake, true); };
-      window.addEventListener("pointerdown", wake, true);
-      window.addEventListener("keydown", wake, true);
-    }
-  }
-  function readSound(){
-    if(!audio){
-      sound.level *= 0.9; sound.bass *= 0.9;
-    } else {
-      audio.analyser.getByteTimeDomainData(audio.wave);
-      let sum = 0;
-      for(let i = 0; i < audio.wave.length; i++){ const v = (audio.wave[i] - 128) / 128; sum += v * v; }
-      const rms = Math.sqrt(sum / audio.wave.length);
-      audio.analyser.getByteFrequencyData(audio.freq);
-      let low = 0; const n = 12;
-      for(let i = 1; i <= n; i++) low += audio.freq[i];
-      // gentle curve so talking moves things and music moves them a lot
-      const lvl = Math.min(1, Math.pow(rms * 4.2, 0.85));
-      const bass = Math.min(1, low / n / 200);
-      sound.level += (lvl - sound.level) * 0.35;
-      sound.bass += (bass - sound.bass) * 0.25;
-    }
-    document.documentElement.style.setProperty("--level", sound.level.toFixed(3));
-    document.documentElement.style.setProperty("--bass", sound.bass.toFixed(3));
-  }
-
-  // no button: the microphone is asked for on the visitor's first click or key
-  // press (browsers only allow it after one); if they allowed it on an earlier
-  // visit, listening starts straight away
-  function autoSound(){
-    if(reduced || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
-    const EVENTS = ["pointerdown", "keydown", "touchstart"];
-    let asked = false;
-    const go = () => {
-      if(asked) return;
-      asked = true;
-      EVENTS.forEach(e => window.removeEventListener(e, go, true));
-      startSound().catch(() => {});
-    };
-    EVENTS.forEach(e => window.addEventListener(e, go, true));
-    if(navigator.permissions && navigator.permissions.query){
-      navigator.permissions.query({ name: "microphone" }).then(p => { if(p.state === "granted") go(); }).catch(() => {});
-    }
-  }
 
   /* ============================================================
      PIXEL STAGES — a picture that turns to pixels only when it moves
@@ -169,8 +100,6 @@
   }
 
   function pixelStage(cfg){
-    // a stage only feels the sound when asked to; the hero doesn't
-    const sound = cfg.sound ? window.TKSound : { level: 0, bass: 0 };
     const { stage, canvas, sources, caption } = cfg;
     const fit = cfg.fit || "cover";
     const g = canvas.getContext("2d");
@@ -348,10 +277,8 @@
       }
 
       const mx = pointer.x - rect.left, my = pointer.y - rect.top, push = pointer.active;
-      const R = Math.max(70, Math.min(W, H) * 0.15) * (1 + sound.level * 0.8);
+      const R = Math.max(70, Math.min(W, H) * 0.15);
       const R2 = R * R;
-      const lvl = sound.level, bass = sound.bass, shake = lvl > 0.02;
-      const cx = W / 2, cy = H / 2;
       // friction scaled to the frame time, so slow screens settle as fast as quick ones
       const damp = Math.pow(0.84, dt), ease = 1 - Math.pow(0.86, dt), fade = 1 - Math.pow(0.9, dt);
       // a settling pixel melts into the photo over about half a second; a cell that
@@ -390,11 +317,6 @@
             const d = Math.sqrt(d2) || 1, f = 1 - d / R;
             ax += (dx / d) * f * f * 9; ay += (dy / d) * f * f * 9;
           }
-        }
-        if(shake){
-          const ox = HX[i] - cx, oy = HY[i] - cy, od = Math.sqrt(ox * ox + oy * oy) || 1;
-          ax += (ox / od) * bass * 2.4 + (Math.random() - 0.5) * lvl * 5;
-          ay += (oy / od) * bass * 2.4 + (Math.random() - 0.5) * lvl * 5;
         }
         const vx = (VX[i] + ax * dt) * damp, vy = (VY[i] + ay * dt) * damp;
         VX[i] = vx; VY[i] = vy;
@@ -470,11 +392,11 @@
         if(x < 0 || y < 0 || x >= W || y >= H) continue;
         // coloured from the picture underneath, a little brighter
         const ci = Math.min(N - 1, ((y / step) | 0) * gw + ((x / step) | 0));
-        const lift = 40 + sound.level * 120;
+        const lift = 40;
         const r0 = Math.min(255, TR[ci] + lift) | 0, g0 = Math.min(255, TG[ci] + lift) | 0, b0 = Math.min(255, TB[ci] + lift) | 0;
-        const a = (0.25 + 0.55 * (0.5 + 0.5 * Math.sin(f.tw))) * (1 + sound.level);
+        const a = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(f.tw));
         g.fillStyle = `rgba(${r0},${g0},${b0},${Math.min(1, a).toFixed(3)})`;
-        const s = f.size * (1 + sound.bass * 0.8);
+        const s = f.size;
         g.fillRect(Math.round(x / step) * step, Math.round(y / step) * step, s, s);
       }
     }
@@ -485,8 +407,8 @@
       if(!edges.length) return;
       dustClock += ms;
       const cap = fine ? 1100 : 450;
-      // a steady shedding all round, much stronger near the cursor or with sound
-      let spawn = (fine ? 2.2 : 1.1) * dt * (1 + sound.level * 6);
+      // a steady shedding all round, much stronger near the cursor
+      let spawn = (fine ? 2.2 : 1.1) * dt;
       while(spawn > 0 && dust.length < cap){
         if(spawn < 1 && Math.random() > spawn) break;
         spawn -= 1;
@@ -524,7 +446,7 @@
     }
     function emit(e, force){
       const i = e.i;
-      const lift = 30 + sound.level * 100;
+      const lift = 30;
       dust.push({
         x: e.x, y: e.y,
         vx: (e.nx * (0.4 + Math.random() * 0.9) + (Math.random() - 0.5) * 0.4) * force,
@@ -632,10 +554,8 @@
     let lastY = window.scrollY, drift = 0;
     function tick(){
       if(document.hidden){ requestAnimationFrame(tick); return; }
-      readSound();
       // scrolling stirs the field a little
       const y = window.scrollY; drift += (y - lastY) * 0.02; lastY = y; drift *= 0.9;
-      const lvl = sound.level;
       g.clearRect(0, 0, W, H);
       const R = 140, R2 = R * R;
       for(const d of dots){
@@ -644,14 +564,13 @@
           const dx = d.x - pointer.x, dy = d.y - pointer.y, d2 = dx * dx + dy * dy;
           if(d2 < R2){ const dd = Math.sqrt(d2) || 1, f = 1 - dd / R; ax += (dx / dd) * f * 0.9; ay += (dy / dd) * f * 0.9; }
         }
-        d.vx = (d.vx + ax) * 0.96 + (Math.random() - 0.5) * 0.02 * (1 + lvl * 20);
-        d.vy = (d.vy + ay) * 0.96 + (Math.random() - 0.5) * 0.02 * (1 + lvl * 20) - drift * 0.02;
-        d.x += d.vx * (1 + lvl * 3); d.y += d.vy * (1 + lvl * 3);
+        d.vx = (d.vx + ax) * 0.96 + (Math.random() - 0.5) * 0.02;
+        d.vy = (d.vy + ay) * 0.96 + (Math.random() - 0.5) * 0.02 - drift * 0.02;
+        d.x += d.vx; d.y += d.vy;
         if(d.x < -10) d.x = W + 10; else if(d.x > W + 10) d.x = -10;
         if(d.y < -10) d.y = H + 10; else if(d.y > H + 10) d.y = -10;
-        const rr = d.r * (1 + lvl * 1.5);
-        g.fillStyle = `rgba(${d.c},${Math.min(1, d.a + lvl * 0.4).toFixed(3)})`;
-        g.beginPath(); g.arc(d.x, d.y, rr, 0, Math.PI * 2); g.fill();
+        g.fillStyle = `rgba(${d.c},${d.a.toFixed(3)})`;
+        g.beginPath(); g.arc(d.x, d.y, d.r, 0, Math.PI * 2); g.fill();
       }
       // thin threads between points that sit near the cursor
       if(pointer.active){
@@ -675,7 +594,6 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    autoSound();
     initField();
     // wait a frame so the hero has its final size before sampling the photo
     requestAnimationFrame(() => requestAnimationFrame(() => { initHero(); }));
