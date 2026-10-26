@@ -60,7 +60,10 @@ const CONTENT = {
       { label: "BASED",  value: "Chennai, India" },
       { label: "REEL",   value: "No. 001" },
     ],
-    blurb: "I don't just edit videos — I chase pacing, rhythm and the right cut. From first frame to final render.",
+    // The line under your role. Set "blurbBy" when it's a quote, and the
+    // name shows under it; leave it "" for your own words.
+    blurb: "“Cinema is a matter of what's in the frame and what's out.”",
+    blurbBy: "Martin Scorsese",
     // The photos the first screen builds out of particles, in order. Bright
     // subjects on dark grounds work best. Leave the list empty to use every
     // photo from your albums below.

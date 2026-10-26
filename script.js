@@ -246,6 +246,11 @@ function renderHero(){
   document.getElementById("hero-role").innerHTML =
     esc(CONTENT.role || "") + (based ? `<span>Based in ${esc(based.value)}</span>` : "");
   document.getElementById("hero-blurb").textContent = (CONTENT.hero && CONTENT.hero.blurb) || "";
+  // who said it, when the blurb is a quote
+  const by = (CONTENT.hero && CONTENT.hero.blurbBy) || "";
+  const cite = document.getElementById("hero-blurb-by");
+  cite.textContent = by ? `— ${by}` : "";
+  cite.hidden = !by;
   document.getElementById("bar-mark").textContent = initials(CONTENT.name);
   window.TK_HERO_PHOTOS = heroPhotos();
 }
@@ -385,12 +390,6 @@ function renderPhotos(){
   const section = document.getElementById("photography");
   const albums = CONTENT.work.filter(w => w.category === PHOTO && w.images && w.images.length);
   if(!albums.length){ section.hidden = true; return; }
-  const total = albums.reduce((n, a) => n + a.images.length, 0);
-  const ig = (CONTENT.contact.socials || []).find(s => /instagram/i.test(s.label));
-  document.getElementById("photos-sub").innerHTML =
-    `${total} photographs in ${albums.length} albums` +
-    (ig ? `, from <a href="${esc(ig.url)}" target="_blank" rel="noopener">my Instagram</a>.` : ".");
-
   row.innerHTML = "";
   albums.forEach((album, i) => {
     const li = el("li", "stack-item rv");

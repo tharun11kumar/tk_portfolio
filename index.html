@@ -42,7 +42,10 @@
 <section id="top" class="hero">
   <div class="hero-text rv">
     <p class="hero-role" id="hero-role"><!-- content.role --></p>
-    <p class="hero-blurb" id="hero-blurb"><!-- content.hero.blurb --></p>
+    <blockquote class="hero-blurb">
+      <p id="hero-blurb"><!-- content.hero.blurb --></p>
+      <cite id="hero-blurb-by"><!-- content.hero.blurbBy --></cite>
+    </blockquote>
     <a class="btn" href="#work">See the work</a>
   </div>
 
@@ -91,7 +94,6 @@
 <section id="photography" class="photos" aria-labelledby="photos-title">
   <div class="photos-head">
     <h2 class="photos-title rv" id="photos-title">Photography</h2>
-    <p class="photos-sub rv" id="photos-sub" style="--d:80ms"></p>
     <div class="photos-nav rv" style="--d:140ms">
       <button class="icon-btn" id="photos-prev" type="button" aria-label="Previous albums">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
