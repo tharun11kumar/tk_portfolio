@@ -902,11 +902,11 @@ details.credit summary:hover{ background: rgba(11, 11, 13, 0.1); }
   position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
+  align-items: stretch;
   gap: clamp(14px, 1.6vw, 26px);
   /* nearly the full width of the window, flush with the bottom */
   margin: 0 calc(var(--margin) * -1 + 10px);
-  padding: clamp(14px, 1.3vw, 20px) clamp(14px, 1.3vw, 20px) clamp(22px, 2.2vw, 34px);
+  padding: clamp(14px, 1.3vw, 20px) clamp(14px, 1.3vw, 20px) clamp(12px, 1.2vw, 18px);
   border-radius: 26px 26px 0 0;
   background: linear-gradient(180deg, #2c2c30 0%, #1d1d20 3%, #161618 40%, #121214 100%);
   box-shadow:
@@ -932,59 +932,62 @@ details.credit summary:hover{ background: rgba(11, 11, 13, 0.1); }
     0 1px 0 rgba(255, 255, 255, 0.05),
     0 6px 14px -6px rgba(0, 0, 0, 0.8);
 }
-.deck-left{ padding: 10px 10px 12px; display: grid; gap: 10px; }
-.deck-plate.deck-left{
-  background: linear-gradient(180deg, #141416, #19191c);
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-.deck-top{ display: flex; align-items: center; gap: 10px; }
+.deck-left{ padding: 10px 10px 12px; display: grid; gap: 10px; min-width: 0; }
+.deck-plate.deck-left{ background: none; box-shadow: none; padding: 0; }
+.deck-top{ display: flex; align-items: center; gap: 10px; min-width: 0; }
 
 /* the status strip: dot-matrix green on a dark glass */
 .deck-lcd{
   flex: 1;
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   min-width: 0;
-  height: 30px;
-  padding: 0 12px;
-  border-radius: 9px;
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 999px;
   background:
     repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0 1px, transparent 1px 3px),
     linear-gradient(180deg, #0b170e, #0f1f13);
   box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.9), inset 0 0 0 1px rgba(0, 0, 0, 0.8), 0 1px 0 rgba(255, 255, 255, 0.07);
   color: #49d46e;
-  font: 400 19px/1 "VT323", ui-monospace, monospace;
-  letter-spacing: 0.04em;
+  font: 500 15px/1 "Doto", "VT323", ui-monospace, monospace;
+  letter-spacing: 0.06em;
   text-shadow: 0 0 5px rgba(70, 255, 120, 0.45);
 }
 .deck-lcd-text{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .deck-led{ flex: none; width: 7px; height: 7px; border-radius: 50%; background: #3ddc84; box-shadow: 0 0 8px 2px rgba(61, 220, 132, 0.75); }
+.deck-lcd.is-off .deck-led{ background: #1d3a26; box-shadow: none; }
 /* the round badge beside it */
 .deck-badge{
   flex: none;
   display: grid; place-items: center;
-  width: 30px; height: 30px;
+  width: 38px; height: 38px;
   border-radius: 50%;
   background: radial-gradient(circle at 40% 30%, #3a3a3f, #18181b 70%);
   box-shadow: 0 0 0 2px #0a0a0b, 0 0 0 3px #2c2c30, inset 0 1px 0 rgba(255, 255, 255, 0.2);
   color: #d9d6cf;
-  font: 400 12px/1 var(--display);
+  font: 400 14px/1 var(--display);
   letter-spacing: 0.02em;
 }
 
 /* the keycaps: a top face on a visible skirt, so they read as solid caps */
-.deck-keys{ display: grid; gap: 0; }
-.deck-row{ display: flex; gap: 2px; }
-/* the rows sit a touch over each other, like caps seen from the front */
-.deck-row + .deck-row{ margin-top: calc(var(--u) * -0.04); }
+.deck-keys{
+  display: grid;
+  gap: 0;
+  /* a key in the last row sinks into the deck rather than past it */
+  clip-path: inset(-40% -6% 0 -6%);
+}
+.deck-row{ position: relative; display: flex; gap: 2px; }
+/* each row overlaps the one behind it, so a pressed key's skirt hides under it */
+.deck-row + .deck-row{ margin-top: calc(var(--u) * -0.2); }
 .key{
   position: relative;
   flex: none;
   width: calc(var(--w) * var(--u) + (var(--w) - 1) * 2px);
-  height: calc(var(--u) * 0.86);
+  height: calc(var(--u) * 0.96);
   border-radius: calc(var(--u) * 0.17);
   text-decoration: none;
   background: linear-gradient(180deg, var(--sk1), var(--sk2));
-  transform: perspective(calc(var(--u) * 3.2)) rotateX(12deg);
+  transform: perspective(calc(var(--u) * 2.4)) rotateX(19deg);
   transform-origin: 50% 100%;
   box-shadow:
     0 calc(var(--u) * 0.1) calc(var(--u) * 0.16) -4px rgba(0, 0, 0, 0.85),
@@ -993,65 +996,41 @@ details.credit summary:hover{ background: rgba(11, 11, 13, 0.1); }
     inset 4px 0 5px -3px rgba(255, 255, 255, 0.1),
     inset -4px 0 5px -3px rgba(0, 0, 0, 0.45),
     inset 0 -3px 4px rgba(0, 0, 0, 0.35);
-  /* coming back up: a spring, with a touch of overshoot */
-  transition: transform 340ms cubic-bezier(0.34, 1.8, 0.5, 1), box-shadow 300ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 .key-cap{
   position: absolute;
-  left: 7%; right: 7%; top: 2%; bottom: 30%;
+  left: 8%; right: 8%; top: 2%; bottom: 33%;
   display: grid; place-items: center;
   border-radius: calc(var(--u) * 0.13);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 34%),
     radial-gradient(130% 110% at 50% 0%, var(--f1), var(--f2) 78%);
   box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.45),
-    inset 0 -6px 10px rgba(0, 0, 0, 0.18),
-    0 2px 3px rgba(0, 0, 0, 0.4);
-  transition: bottom 340ms cubic-bezier(0.34, 1.8, 0.5, 1), filter 200ms ease, box-shadow 200ms ease;
+    inset 0 1px 1px rgba(255, 255, 255, 0.35),
+    inset 0 -5px 9px rgba(0, 0, 0, 0.12),
+    0 3px 5px -1px rgba(0, 0, 0, 0.28);
 }
 .key-label{
   color: var(--ink, #f4f1ea);
-  font: 500 calc(var(--u) * 0.2)/1 "Lexend", var(--text);
+  font: 500 calc(var(--u) * 0.215)/1 "Lexend", var(--text);
   letter-spacing: 0.03em;
   text-transform: uppercase;
   white-space: nowrap;
 }
 .key:focus-visible{ outline: 2px solid #57ff86; outline-offset: 3px; }
-/* under the cursor the key travels down, like a finger resting on a switch:
-   the cap drops, its skirt sinks into the deck and the shadow tucks in */
-.key:hover, .key:focus-visible{
-  transform: perspective(calc(var(--u) * 3.2)) rotateX(12deg) translateY(calc(var(--u) * 0.06));
-  box-shadow:
-    0 calc(var(--u) * 0.03) calc(var(--u) * 0.06) -2px rgba(0, 0, 0, 0.9),
-    0 0 0 1px rgba(0, 0, 0, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    inset 0 -2px 3px rgba(0, 0, 0, 0.4),
-    0 calc(var(--u) * 0.05) calc(var(--u) * 0.18) -2px var(--glow, rgba(255, 255, 255, 0.1));
-  transition: transform 70ms ease-out, box-shadow 70ms ease-out;
+/* under the cursor a key snaps straight down, no easing, like a real switch;
+   its skirt slips under the row in front */
+.key:hover, .key:focus-visible, .key:active{
+  transform: perspective(calc(var(--u) * 2.4)) rotateX(19deg) translateY(calc(var(--u) * 0.11));
 }
-.key:hover .key-cap, .key:focus-visible .key-cap{
-  bottom: 21%;
-  filter: brightness(1.06);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), inset 0 -4px 8px rgba(0, 0, 0, 0.22), 0 1px 2px rgba(0, 0, 0, 0.45);
-  transition: bottom 70ms ease-out, filter 120ms ease, box-shadow 70ms ease-out;
-}
-/* a click bottoms it out */
-.key:active{
-  transform: perspective(calc(var(--u) * 3.2)) rotateX(12deg) translateY(calc(var(--u) * 0.1));
-  box-shadow: 0 1px 2px -1px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 calc(var(--u) * 0.04) calc(var(--u) * 0.22) 0 var(--glow, rgba(255, 255, 255, 0.12));
-  transition-duration: 40ms;
-}
-.key:active .key-cap{ bottom: 13%; filter: brightness(0.96); transition-duration: 40ms; }
 
-.key-black{  --f1: #4a4a50; --f2: #1f1f23; --sk1: #3a3a40; --sk2: #0d0d0f; --glow: rgba(87, 255, 134, 0.22); }
-.key-frost{  --f1: #ffffff; --f2: #a9cdf2; --sk1: #b9d6f4; --sk2: #4675b8; --ink: #3c6fb8; --glow: rgba(150, 200, 255, 0.45); }
-.key-sand{   --f1: #f8e4bb; --f2: #d8b27a; --sk1: #b98c55; --sk2: #6f4e2b; --ink: #3d2b14; --glow: rgba(255, 210, 140, 0.4); }
-.key-candy{  --f1: #ffd0f2; --f2: #ee86d6; --sk1: #c962b4; --sk2: #6f2765; --ink: #8e2a80; --glow: rgba(255, 140, 220, 0.45); }
-.key-cobalt{ --f1: #6f86ff; --f2: #2537ee; --sk1: #2230c4; --sk2: #0d1260; --glow: rgba(90, 120, 255, 0.55); }
-.key-sunset{ --sk1: #b8306a; --sk2: #4a1a6a; --glow: rgba(255, 90, 120, 0.5); }
+.key-black{  --f1: #424248; --f2: #1f1f23; --sk1: #2e2e33; --sk2: #0f0f11; }
+.key-frost{  --f1: #f4f9ff; --f2: #b4d3f3; --sk1: #a3c6ee; --sk2: #5683c4; --ink: #3c6fb8; }
+.key-sand{   --f1: #f3dcae; --f2: #dcb57d; --sk1: #cfa66c; --sk2: #8a6436; --ink: #3d2b14; }
+.key-candy{  --f1: #ffc8ee; --f2: #f08fda; --sk1: #e47ccc; --sk2: #9b3a8f; --ink: #8e2a80; }
+.key-cobalt{ --f1: #5d76ff; --f2: #2a3ff2; --sk1: #263be6; --sk2: #131c96; }
+.key-sunset{ --sk1: #e0457a; --sk2: #6a2a8a; }
 .key-sunset .key-cap{
   background:
     radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.3), transparent 60%),
@@ -1071,10 +1050,13 @@ details.credit summary:hover{ background: rgba(11, 11, 13, 0.1); }
 }
 
 /* the scope: a square plate, four screws, a round green tube */
-.deck-scope{ width: calc(var(--u) * 3.85); aspect-ratio: 1; }
+.deck-scope{ width: calc(var(--u) * 3.85); }
 .deck-crt{
   position: absolute;
-  inset: 9%;
+  top: 8%; bottom: 8%;
+  left: 50%;
+  aspect-ratio: 1;
+  translate: -50% 0;
   border-radius: 50%;
   overflow: hidden;
   background: #0a1a10;
@@ -1327,9 +1309,11 @@ details.credit summary:hover{ background: rgba(11, 11, 13, 0.1); }
     padding: 14px 10px 26px;
     border-radius: 22px 22px 0 0;
   }
-  .deck-left{ padding: 10px; }
+  .deck-plate.deck-left{ width: 100%; padding: 0 6px; }
+  .deck-keys{ justify-self: center; }
+  .deck-lcd{ font-size: 12px; padding: 0 12px; }
   .deck-grille{ display: none; }
-  .deck-scope{ width: min(250px, 66vw); }
+  .deck-scope{ width: min(250px, 66vw); aspect-ratio: 1; }
 
   .modal{ padding: 0; align-items: end; }
   .modal-card{ max-height: 94svh; }
