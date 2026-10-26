@@ -275,14 +275,18 @@ function startTimecode(){
    WORK — the names pass the held frame; whichever name crosses
    the middle of the screen shows its picture in the frame.
    ============================================================ */
+const PHOTO = "photography";
+function listWork(){ return CONTENT.work.filter(w => w.category !== PHOTO); }
+
 function renderTabs(){
   const wrap = document.getElementById("tabs");
   wrap.innerHTML = "";
-  const cats = [{ id: "all", label: "All" }].concat(CONTENT.categories);
+  // photography has its own section below, so the list covers the moving work
+  const cats = [{ id: "all", label: "All" }].concat(CONTENT.categories.filter(c => c.id !== PHOTO));
   cats.forEach(cat => {
     const count = cat.id === "all"
-      ? CONTENT.work.length
-      : CONTENT.work.filter(w => w.category === cat.id).length;
+      ? listWork().length
+      : listWork().filter(w => w.category === cat.id).length;
     const btn = el("button", "chip", `${esc(cat.label)}`);
     btn.type = "button";
     btn.setAttribute("aria-pressed", String(cat.id === activeCategory));
@@ -312,8 +316,8 @@ function renderWork(){
   workPick = () => {}; workQueue = () => {};
 
   const items = activeCategory === "all"
-    ? CONTENT.work
-    : CONTENT.work.filter(w => w.category === activeCategory);
+    ? listWork()
+    : listWork().filter(w => w.category === activeCategory);
 
   if(!items.length){
     list.appendChild(el("li", "work-empty", "Nothing here yet."));
@@ -368,6 +372,118 @@ function setFacts(item){
   if(!item){ l.innerHTML = ""; r.innerHTML = ""; return; }
   l.innerHTML = `${esc(labelFor(item.category))}<span>${esc(item.role)}</span>`;
   r.innerHTML = `${esc(item.year)}<span>${esc(actionFor(item))}</span>`;
+}
+
+/* ============================================================
+   PHOTOGRAPHY — each album is a small stack of prints in a row
+   you can scroll or drag sideways. Pointing at a stack fans the
+   prints out and leafs through the album; clicking opens it as
+   the slideshow.
+   ============================================================ */
+function renderPhotos(){
+  const row = document.getElementById("photos-row");
+  const section = document.getElementById("photography");
+  const albums = CONTENT.work.filter(w => w.category === PHOTO && w.images && w.images.length);
+  if(!albums.length){ section.hidden = true; return; }
+  const total = albums.reduce((n, a) => n + a.images.length, 0);
+  const ig = (CONTENT.contact.socials || []).find(s => /instagram/i.test(s.label));
+  document.getElementById("photos-sub").innerHTML =
+    `${total} photographs in ${albums.length} albums` +
+    (ig ? `, from <a href="${esc(ig.url)}" target="_blank" rel="noopener">my Instagram</a>.` : ".");
+
+  row.innerHTML = "";
+  albums.forEach((album, i) => {
+    const li = el("li", "stack-item rv");
+    li.style.setProperty("--d", `${Math.min(i, 4) * 70}ms`);
+    const btn = el("button", "stack");
+    btn.type = "button";
+    btn.setAttribute("aria-label", `${album.title}, ${album.images.length} photos. Open the album`);
+    // three prints: the cover on top, the next two tucked underneath
+    const prints = album.images.slice(0, 3).map((src, k) =>
+      `<span class="print print-${k}"><img src="${esc(src)}" alt="" loading="lazy" decoding="async"></span>`).reverse().join("");
+    btn.innerHTML = `
+      <span class="stack-prints">${prints}<span class="stack-glow" aria-hidden="true"></span></span>
+      <span class="stack-text">
+        <span class="stack-title">${esc(album.title)}</span>
+        <span class="stack-meta">${album.images.length} photo${album.images.length === 1 ? "" : "s"} · ${esc(album.year)}</span>
+      </span>`;
+    btn.addEventListener("click", () => openModal(album));
+    leafThrough(btn, album);
+    tiltOnPointer(btn);
+    li.appendChild(btn);
+    row.appendChild(li);
+  });
+  initPhotoRow(row);
+}
+
+/* pointing at a stack leafs through the album on the top print */
+function leafThrough(btn, album){
+  if(album.images.length < 2) return;
+  const top = btn.querySelector(".print-0 img");
+  let i = 0, timer = null;
+  const start = () => {
+    if(timer || reducedMotion()) return;
+    timer = setInterval(() => {
+      i = (i + 1) % album.images.length;
+      top.src = album.images[i];
+    }, 850);
+  };
+  const stop = () => { clearInterval(timer); timer = null; i = 0; top.src = album.images[0]; };
+  btn.addEventListener("pointerenter", start);
+  btn.addEventListener("pointerleave", stop);
+  btn.addEventListener("focus", start);
+  btn.addEventListener("blur", stop);
+}
+
+/* the stack leans toward the cursor, like picking up a print */
+function tiltOnPointer(btn){
+  if(reducedMotion() || !window.matchMedia("(pointer: fine)").matches) return;
+  const prints = btn.querySelector(".stack-prints");
+  btn.addEventListener("pointermove", (e) => {
+    const r = prints.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+    prints.style.setProperty("--rx", `${(-y * 10).toFixed(2)}deg`);
+    prints.style.setProperty("--ry", `${(x * 12).toFixed(2)}deg`);
+    prints.style.setProperty("--gx", `${((x + 0.5) * 100).toFixed(1)}%`);
+    prints.style.setProperty("--gy", `${((y + 0.5) * 100).toFixed(1)}%`);
+  });
+  btn.addEventListener("pointerleave", () => {
+    prints.style.setProperty("--rx", "0deg");
+    prints.style.setProperty("--ry", "0deg");
+  });
+}
+
+/* arrows, and dragging the row sideways with a mouse */
+function initPhotoRow(row){
+  const by = () => (row.querySelector(".stack-item")?.getBoundingClientRect().width || 400) + 24;
+  const go = (dir) => row.scrollBy({ left: dir * by(), behavior: reducedMotion() ? "auto" : "smooth" });
+  document.getElementById("photos-prev").onclick = () => go(-1);
+  document.getElementById("photos-next").onclick = () => go(1);
+  const sync = () => {
+    document.getElementById("photos-prev").disabled = row.scrollLeft < 8;
+    document.getElementById("photos-next").disabled = row.scrollLeft + row.clientWidth > row.scrollWidth - 8;
+  };
+  row.addEventListener("scroll", sync, { passive: true });
+  window.addEventListener("resize", sync);
+  sync();
+
+  let down = null, moved = false;
+  row.addEventListener("pointerdown", (e) => {
+    if(e.pointerType !== "mouse" || e.button !== 0) return;
+    down = { x: e.clientX, left: row.scrollLeft }; moved = false;
+  });
+  window.addEventListener("pointermove", (e) => {
+    if(!down) return;
+    const dx = e.clientX - down.x;
+    if(Math.abs(dx) > 6){ moved = true; row.classList.add("is-dragging"); }
+    if(moved) row.scrollLeft = down.left - dx;
+  });
+  window.addEventListener("pointerup", () => {
+    down = null;
+    setTimeout(() => row.classList.remove("is-dragging"), 0);
+  });
+  // a drag should not also open the album it ended on
+  row.addEventListener("click", (e) => { if(moved){ e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
 }
 
 /* ============================================================
@@ -772,6 +888,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderHero();
   renderTabs();
   renderWork();
+  renderPhotos();
   renderAbout();
   renderStats();
   renderHistory();

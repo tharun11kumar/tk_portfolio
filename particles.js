@@ -106,29 +106,35 @@
 
   /* ============================================================
      HERO — photos made of particles
+     Every particle is one pixel of a fine grid over the photo, so
+     at rest the picture reads clearly; the particles only show
+     themselves when something pushes them. Positions live in
+     typed arrays and are drawn into a small pixel buffer that is
+     scaled up crisply, which keeps tens of thousands of them fast.
      ============================================================ */
-  function sampleImage(img, w, h, maxCount){
+  function sampleImage(img, w, h, step){
+    const gw = Math.ceil(w / step), gh = Math.ceil(h / step);
     const off = document.createElement("canvas");
-    off.width = w; off.height = h;
+    off.width = gw; off.height = gh;
     const g = off.getContext("2d", { willReadFrequently: true });
-    // cover-fit the photo into the stage
-    const s = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+    g.imageSmoothingQuality = "high";
+    // cover-fit the photo into the grid
+    const s = Math.max(gw / img.naturalWidth, gh / img.naturalHeight);
     const dw = img.naturalWidth * s, dh = img.naturalHeight * s;
-    g.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
-    const data = g.getImageData(0, 0, w, h).data;
-
-    let step = Math.max(3, Math.round(Math.sqrt((w * h) / maxCount)));
-    const pts = [];
-    for(let y = step / 2; y < h; y += step){
-      for(let x = step / 2; x < w; x += step){
-        const i = ((y | 0) * w + (x | 0)) * 4;
-        const r = data[i], gg = data[i + 1], b = data[i + 2];
-        const lum = (0.2126 * r + 0.7152 * gg + 0.0722 * b) / 255;
-        if(lum < 0.1) continue;            // the dark ground stays empty
-        pts.push({ x, y, r, g: gg, b, lum });
+    g.drawImage(img, (gw - dw) / 2, (gh - dh) / 2, dw, dh);
+    const data = g.getImageData(0, 0, gw, gh).data;
+    const hx = [], hy = [], r = [], gg = [], b = [], al = [];
+    for(let y = 0; y < gh; y++){
+      for(let x = 0; x < gw; x++){
+        const i = (y * gw + x) * 4;
+        const lum = (0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]) / 255;
+        if(lum < 0.025) continue;          // true black stays empty, so the glow shows through
+        hx.push((x + 0.5) * step); hy.push((y + 0.5) * step);
+        r.push(data[i]); gg.push(data[i + 1]); b.push(data[i + 2]);
+        al.push(Math.min(1, lum * 10));
       }
     }
-    return { pts, step };
+    return { n: hx.length, hx, hy, r, g: gg, b, al };
   }
 
   function initHero(){
@@ -152,66 +158,85 @@
     }
 
     const g = canvas.getContext("2d");
-    let W = 0, H = 0, rect = null;
-    let parts = [];
-    let step = 6;
+    const buf = document.createElement("canvas");
+    const bg = buf.getContext("2d");
+    let W = 0, H = 0, rect = null, step = 3, gw = 1, gh = 1, pix = null, pix32 = null;
     let current = -1;
     const images = sources.map(s => { const im = new Image(); im.decoding = "async"; im.src = s.src; return im; });
+
+    // particle state, one slot per particle
+    let N = 0, keep = 0;
+    let X, Y, VX, VY, HX, HY, CR, CG, CB, TR, TG, TB, A, TA, LEAVING;
+    function alloc(n){
+      const f = () => new Float32Array(n);
+      const old = { X, Y, VX, VY, CR, CG, CB, A };
+      X = f(); Y = f(); VX = f(); VY = f(); HX = f(); HY = f();
+      CR = f(); CG = f(); CB = f(); TR = f(); TG = f(); TB = f(); A = f(); TA = f();
+      LEAVING = new Uint8Array(n);
+      return old;
+    }
 
     function size(){
       rect = stage.getBoundingClientRect();
       W = Math.max(1, Math.round(rect.width));
       H = Math.max(1, Math.round(rect.height));
+      // finer grid on bigger, faster screens; about 36k particles on a desktop
+      const target = fine ? 36000 : 15000;
+      step = Math.max(2, Math.ceil(Math.sqrt((W * H) / target)));
+      gw = Math.ceil(W / step); gh = Math.ceil(H / step);
+      buf.width = gw; buf.height = gh;
+      pix = bg.createImageData(gw, gh);
+      pix32 = new Uint32Array(pix.data.buffer);
       canvas.width = W * DPR; canvas.height = H * DPR;
       canvas.style.width = W + "px"; canvas.style.height = H + "px";
       g.setTransform(DPR, 0, 0, DPR, 0, 0);
+      g.imageSmoothingEnabled = false;
     }
 
-    function maxCount(){
-      const area = W * H;
-      return Math.min(fine ? 7000 : 3200, Math.max(1500, area / 34));
-    }
-
-    function form(index){
+    function form(index, scatter){
       const img = images[index];
       if(!img.complete || !img.naturalWidth){
-        img.addEventListener("load", () => form(index), { once: true });
+        img.addEventListener("load", () => form(index, scatter), { once: true });
         return;
       }
       current = index;
       if(caption) caption.textContent = sources[index].title || "";
-      const sample = sampleImage(img, W, H, maxCount());
-      step = sample.step;
-      const pts = sample.pts;
-      // shuffle so the hand-over between photos looks like a swarm, not a wipe
-      for(let i = pts.length - 1; i > 0; i--){ const j = (Math.random() * (i + 1)) | 0; [pts[i], pts[j]] = [pts[j], pts[i]]; }
-      const next = [];
-      for(let i = 0; i < pts.length; i++){
-        const t = pts[i];
-        const p = parts[i] || {
-          // newcomers fly in from anywhere on the stage
-          x: Math.random() * W, y: Math.random() * H + (Math.random() - 0.5) * H,
-          vx: 0, vy: 0, a: 0, size: step * 0.7,
-          r: t.r, g: t.g, b: t.b,
-        };
-        p.hx = t.x; p.hy = t.y;
-        p.tr = t.r; p.tg = t.g; p.tb = t.b;
-        p.tsize = step * (0.45 + t.lum * 0.6);
-        p.ta = 0.55 + t.lum * 0.45;
-        p.leaving = false;
-        next.push(p);
+      const s = sampleImage(img, W, H, step);
+      // shuffle the targets so the hand-over between photos is a swarm, not a wipe
+      const order = new Uint32Array(s.n);
+      for(let i = 0; i < s.n; i++) order[i] = i;
+      for(let i = s.n - 1; i > 0; i--){ const j = (Math.random() * (i + 1)) | 0; const t = order[i]; order[i] = order[j]; order[j] = t; }
+
+      const oldN = N;
+      const total = Math.max(s.n, oldN);
+      const old = alloc(total);
+      for(let i = 0; i < total; i++){
+        const had = i < oldN && old.X;
+        if(had && !scatter){
+          X[i] = old.X[i]; Y[i] = old.Y[i]; VX[i] = old.VX[i]; VY[i] = old.VY[i];
+          CR[i] = old.CR[i]; CG[i] = old.CG[i]; CB[i] = old.CB[i]; A[i] = old.A[i];
+        } else {
+          // newcomers fly in from anywhere around the stage
+          X[i] = Math.random() * W; Y[i] = Math.random() * H * 1.4 - H * 0.2;
+          VX[i] = 0; VY[i] = 0; A[i] = 0;
+        }
+        if(i < s.n){
+          const k = order[i];
+          HX[i] = s.hx[k]; HY[i] = s.hy[k];
+          TR[i] = s.r[k]; TG[i] = s.g[k]; TB[i] = s.b[k]; TA[i] = s.al[k];
+          if(!had || scatter){ CR[i] = TR[i]; CG[i] = TG[i]; CB[i] = TB[i]; }
+          LEAVING[i] = 0;
+        } else {
+          // particles the new photo does not need drift off and fade out
+          LEAVING[i] = 1; TA[i] = 0;
+          VX[i] += (Math.random() - 0.5) * 6; VY[i] += (Math.random() - 0.5) * 6;
+        }
       }
-      // particles the new photo doesn't need drift off and fade out
-      for(let i = pts.length; i < parts.length; i++){
-        const p = parts[i]; p.leaving = true;
-        p.vx += (Math.random() - 0.5) * 6; p.vy += (Math.random() - 0.5) * 6;
-        next.push(p);
-      }
-      parts = next;
+      N = total; keep = s.n;
     }
 
     let visible = true, raf = null, last = performance.now(), sinceSwap = 0;
-    const HOLD = 6000;
+    const HOLD = 6500;
 
     function tick(now){
       raf = null;
@@ -224,51 +249,58 @@
         form((current + 1) % images.length);
       }
 
-      const mx = pointer.x - rect.left, my = pointer.y - rect.top;
-      const R = Math.max(70, Math.min(W, H) * 0.16) * (1 + sound.level * 0.8);
+      const mx = pointer.x - rect.left, my = pointer.y - rect.top, push = pointer.active;
+      const R = Math.max(70, Math.min(W, H) * 0.15) * (1 + sound.level * 0.8);
       const R2 = R * R;
-      const lvl = sound.level, bass = sound.bass;
+      const lvl = sound.level, bass = sound.bass, shake = lvl > 0.02;
       const cx = W / 2, cy = H / 2;
       // friction scaled to the frame time, so slow screens settle as fast as quick ones
-      const damp = Math.pow(0.84, dt), ease = 1 - Math.pow(0.9, dt);
+      const damp = Math.pow(0.84, dt), ease = 1 - Math.pow(0.9, dt), fade = ease * 0.7;
 
-      g.clearRect(0, 0, W, H);
-      const alive = [];
-      for(const p of parts){
-        // spring home
-        let ax = (p.hx - p.x) * 0.055, ay = (p.hy - p.y) * 0.055;
-        // the cursor pushes them away
-        if(pointer.active){
-          const dx = p.x - mx, dy = p.y - my, d2 = dx * dx + dy * dy;
-          if(d2 < R2){
-            const d = Math.sqrt(d2) || 1, f = (1 - d / R);
-            ax += (dx / d) * f * f * 9; ay += (dy / d) * f * f * 9;
+      pix32.fill(0);
+      let leavingAlive = 0;
+      for(let i = 0; i < N; i++){
+        let ax, ay;
+        if(LEAVING[i]){
+          ax = 0; ay = 0.02;
+        } else {
+          ax = (HX[i] - X[i]) * 0.055; ay = (HY[i] - Y[i]) * 0.055;
+          if(push){
+            const dx = X[i] - mx, dy = Y[i] - my, d2 = dx * dx + dy * dy;
+            if(d2 < R2){
+              const d = Math.sqrt(d2) || 1, f = 1 - d / R;
+              ax += (dx / d) * f * f * 9; ay += (dy / d) * f * f * 9;
+            }
+          }
+          if(shake){
+            const ox = HX[i] - cx, oy = HY[i] - cy, od = Math.sqrt(ox * ox + oy * oy) || 1;
+            ax += (ox / od) * bass * 2.4 + (Math.random() - 0.5) * lvl * 5;
+            ay += (oy / od) * bass * 2.4 + (Math.random() - 0.5) * lvl * 5;
           }
         }
-        // sound: everything breathes outward from the centre and shivers
-        if(lvl > 0.02){
-          const ox = p.hx - cx, oy = p.hy - cy, od = Math.hypot(ox, oy) || 1;
-          ax += (ox / od) * bass * 2.4 + (Math.random() - 0.5) * lvl * 5;
-          ay += (oy / od) * bass * 2.4 + (Math.random() - 0.5) * lvl * 5;
-        }
-        if(p.leaving){ ax = 0; ay = 0.02; p.ta = 0; }
-        p.vx = (p.vx + ax * dt) * damp;
-        p.vy = (p.vy + ay * dt) * damp;
-        p.x += p.vx * dt; p.y += p.vy * dt;
-        // ease colour, size and opacity toward the new photo
-        p.r += (p.tr - p.r) * ease; p.g += (p.tg - p.g) * ease; p.b += (p.tb - p.b) * ease;
-        p.size += (p.tsize * (1 + lvl * 0.9) - p.size) * ease;
-        p.a += (p.ta - p.a) * ease * 0.7;
-        if(p.leaving && p.a < 0.02) continue;
-        alive.push(p);
+        const vx = (VX[i] + ax * dt) * damp, vy = (VY[i] + ay * dt) * damp;
+        VX[i] = vx; VY[i] = vy;
+        const x = X[i] += vx * dt, y = Y[i] += vy * dt;
+        CR[i] += (TR[i] - CR[i]) * ease; CG[i] += (TG[i] - CG[i]) * ease; CB[i] += (TB[i] - CB[i]) * ease;
+        const a = A[i] += (TA[i] - A[i]) * fade;
+        if(LEAVING[i]){ if(a < 0.02) continue; leavingAlive++; }
+
+        const gx = (x / step) | 0, gy = (y / step) | 0;
+        if(gx < 0 || gy < 0 || gx >= gw || gy >= gh) continue;
         // fast movers glow warm, like sparks
-        const speed = Math.min(1, Math.max(0, Math.hypot(p.vx, p.vy) - 0.6) / 6);
-        const r = p.r + (255 - p.r) * speed, gg = p.g + (110 - p.g) * speed, b = p.b + (50 - p.b) * speed;
-        g.fillStyle = `rgba(${r | 0},${gg | 0},${b | 0},${p.a.toFixed(3)})`;
-        const s = p.size;
-        g.fillRect(p.x - s / 2, p.y - s / 2, s, s);
+        const sp = vx * vx + vy * vy;
+        let r = CR[i], gg = CG[i], b = CB[i];
+        if(sp > 0.4){
+          const t = Math.min(1, (Math.sqrt(sp) - 0.6) / 6);
+          r += (255 - r) * t; gg += (110 - gg) * t; b += (50 - b) * t;
+        }
+        pix32[gy * gw + gx] = ((a * 255) << 24) | ((b | 0) << 16) | ((gg | 0) << 8) | (r | 0);
       }
-      parts = alive;
+      if(!leavingAlive && N > keep) N = keep;
+
+      bg.putImageData(pix, 0, 0);
+      g.clearRect(0, 0, W, H);
+      g.drawImage(buf, 0, 0, gw * step, gh * step);
       raf = requestAnimationFrame(tick);
     }
 
@@ -280,9 +312,8 @@
     function start(){ if(!raf){ last = performance.now(); raf = requestAnimationFrame(tick); } }
 
     size();
-    // the first photo assembles out of a scattered cloud, like it's being developed
-    form(0);
-    parts.forEach(p => { p.x = Math.random() * W; p.y = Math.random() * H; p.a = 0; });
+    // the first photo assembles out of a scattered cloud, like it is being developed
+    form(0, true);
     start();
 
     new IntersectionObserver((entries) => {
@@ -297,10 +328,15 @@
       if(e.key === "Enter" || e.key === " "){ e.preventDefault(); sinceSwap = 0; form((current + 1) % images.length); }
     });
 
-    let rt = null;
+    let rt = null, lastW = window.innerWidth;
     window.addEventListener("resize", () => {
       clearTimeout(rt);
-      rt = setTimeout(() => { size(); form(Math.max(0, current)); }, 150);
+      rt = setTimeout(() => {
+        // phones fire resize when the address bar slides; only rebuild on a real width change
+        if(window.innerWidth === lastW && N){ rect = stage.getBoundingClientRect(); return; }
+        lastW = window.innerWidth;
+        size(); form(Math.max(0, current), true);
+      }, 150);
     });
     window.addEventListener("scroll", () => { rect = stage.getBoundingClientRect(); }, { passive: true });
   }

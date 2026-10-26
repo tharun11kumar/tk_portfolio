@@ -239,6 +239,10 @@ Put your own media anywhere you like under `assets/` — e.g.
   edits, a sun-and-horizon view for photography, a letterboxed shot for
   films. Add an `image` (or `images` for an album) and the drawing is
   replaced.
+- **Photography has its own section.** Every `photography` album shows as a
+  stack of prints in a row you can scroll, swipe or drag sideways. Pointing
+  at a stack fans the prints out and leafs through the album; clicking opens
+  the slideshow. The Work list above it covers edits and films.
 - **Your photography** lives in `assets/photos/`, exported at up to 2560px
   on the long side. Add more by dropping files in a folder there and listing
   them in an album's `images`.

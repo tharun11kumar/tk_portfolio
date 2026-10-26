@@ -29,8 +29,9 @@
   <a href="#top" class="bar-mark" id="bar-mark" aria-label="Back to top">TK</a>
   <nav class="bar-links" aria-label="Sections">
     <a href="#work">Work</a>
+    <a href="#photography">Photos</a>
     <a href="#about">About</a>
-    <a href="#credits">Credits</a>
+    <a href="#credits" class="bar-opt">Credits</a>
     <a href="#contact">Contact</a>
   </nav>
 </header>
@@ -84,6 +85,23 @@
     </div>
     <ol class="work-list" id="work-list"><!-- content.work --></ol>
   </div>
+</section>
+
+<!-- ============ PHOTOGRAPHY: albums as stacks of prints ============ -->
+<section id="photography" class="photos" aria-labelledby="photos-title">
+  <div class="photos-head">
+    <h2 class="photos-title rv" id="photos-title">Photography</h2>
+    <p class="photos-sub rv" id="photos-sub" style="--d:80ms"></p>
+    <div class="photos-nav rv" style="--d:140ms">
+      <button class="icon-btn" id="photos-prev" type="button" aria-label="Previous albums">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <button class="icon-btn" id="photos-next" type="button" aria-label="Next albums">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+  <ul class="photos-row" id="photos-row"><!-- photography albums from content.work --></ul>
 </section>
 
 <!-- ============ ABOUT: portrait as drop cap ============ -->
