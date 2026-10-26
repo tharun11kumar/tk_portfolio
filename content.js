@@ -445,7 +445,7 @@ const CONTENT = {
     // the cursor and shows the real photo. Leave it null to hide the portrait.
     portrait: "assets/portrait.jpg",
     // who took it; shown small under the portrait ("" to leave it off)
-    portraitCredit: "Photo by @mxtthhii",
+    portraitCredit: "",
     paragraphs: [
       "I'm Tharun — an editor, photographer and filmmaker based out of Chennai, currently studying Electrical and Electronics Engineering at VIT.",
       "The engineering side isn't separate from the creative side — I like building the tools I edit with as much as I like editing. A beat-detection cutter for Premiere Pro started as a way to save myself time; it's now part of how I work.",
@@ -455,7 +455,7 @@ const CONTENT = {
   },
 
   contact: {
-    email: "hello@tharunkumar.example",
+    email: "framesoftk@gmail.com",
     socials: [
       { label: "Instagram", url: "https://www.instagram.com/framesoftk/" },
       { label: "LinkedIn",  url: "https://www.linkedin.com/in/tharun-kumar-91710728b/" },

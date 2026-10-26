@@ -188,7 +188,7 @@ pulls focus. Any photo works (it is cropped to 4:5), e.g. `assets/portrait.jpg`:
 ```js
 about: {
   portrait: "assets/portrait.jpg",
-  portraitCredit: "Photo by @mxtthhii",
+  portraitCredit: "Photo by ...",
   ...
 }
 ```
