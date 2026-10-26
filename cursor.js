@@ -4,8 +4,10 @@
    - It glides after the pointer and tilts the way you move.
    - Over anything clickable the lens zooms in, focus brackets close
      around it and a word says what a click does (Play, View, Open).
-   - Over the photo stages a red REC light blinks.
    - A click fires the shutter: a flash bursts from the lens.
+   - Over the hero and the portrait the camera steps aside for a small
+     focus reticle: a bright dot on the pointer, and a ring of four
+     arcs that trails it, turns slowly and closes in on a click.
    Only on devices with a mouse; touch screens keep their own.
    You should not need to edit this file.
    ============================================================ */
@@ -44,9 +46,21 @@
         </g>
       </svg>
     </span>
-    <span class="cam-rec"><b></b>REC</span>
     <span class="cam-label"></span>`;
   document.body.appendChild(root);
+
+  // the reticle for the photo stages
+  const ret = document.createElement("div");
+  ret.className = "stage-cursor";
+  ret.setAttribute("aria-hidden", "true");
+  ret.innerHTML = `
+    <span class="sc-ring"><svg viewBox="0 0 32 32" width="32" height="32">
+      <path d="M16 2.5A13.5 13.5 0 0 1 27.7 9.25M29.5 16A13.5 13.5 0 0 1 22.75 27.7M16 29.5A13.5 13.5 0 0 1 4.3 22.75M2.5 16A13.5 13.5 0 0 1 9.25 4.3"/>
+    </svg></span>
+    <span class="sc-dot"></span>`;
+  document.body.appendChild(ret);
+  const ring = ret.querySelector(".sc-ring");
+  let rx = -100, ry = -100, spinA = 0, onStage = false;
   document.documentElement.classList.add("has-cam-cursor");
 
   const body = root.querySelector(".cam-body");
@@ -58,17 +72,19 @@
   window.addEventListener("pointermove", (e) => {
     if(e.pointerType !== "mouse") return;
     tx = e.clientX; ty = e.clientY;
-    if(!shown){ x = tx; y = ty; shown = true; root.classList.add("is-on"); }
+    if(!shown){ x = rx = tx; y = ry = ty; shown = true; root.classList.add("is-on"); }
   }, { passive: true });
-  document.addEventListener("mouseleave", () => { root.classList.remove("is-on"); shown = false; });
+  document.addEventListener("mouseleave", () => { root.classList.remove("is-on"); ret.classList.remove("is-on"); shown = false; });
   // inside an embedded player the page can't see the pointer, so step aside
   document.addEventListener("mouseover", (e) => {
     const t = e.target;
-    if(t.tagName === "IFRAME"){ root.classList.remove("is-on"); shown = false; return; }
+    if(t.tagName === "IFRAME"){ root.classList.remove("is-on"); ret.classList.remove("is-on"); shown = false; return; }
     const hot = t.closest("a, button, summary, [role='button'], .clip, .stack, .screen, label");
     root.classList.toggle("is-hot", !!hot);
     label.textContent = hot ? labelFor(hot) : "";
-    root.classList.toggle("is-rec", !!t.closest("#hero-stage, #portrait-stage"));
+    onStage = !!t.closest("#hero-stage, #portrait-stage");
+    root.classList.toggle("is-away", onStage);
+    ret.classList.toggle("is-on", onStage);
   });
 
   function labelFor(el){
@@ -87,8 +103,9 @@
     root.classList.remove("is-shot");
     void root.offsetWidth;   // restart the flash animation
     root.classList.add("is-shot", "is-down");
+    ret.classList.add("is-down");
   });
-  window.addEventListener("pointerup", () => root.classList.remove("is-down"));
+  window.addEventListener("pointerup", () => { root.classList.remove("is-down"); ret.classList.remove("is-down"); });
   flash.addEventListener("animationend", () => root.classList.remove("is-shot"));
 
   function frame(){
@@ -99,6 +116,14 @@
     tilt += ((reduced ? 0 : Math.max(-14, Math.min(14, dx * 0.6))) - tilt) * 0.15;
     root.style.transform = `translate3d(${x}px, ${y}px, 0)`;
     body.style.setProperty("--tilt", `${tilt.toFixed(2)}deg`);
+    // the reticle: the dot sits on the pointer, the ring trails and turns
+    if(onStage){
+      const kr = reduced ? 1 : 0.2;
+      rx += (tx - rx) * kr; ry += (ty - ry) * kr;
+      if(!reduced) spinA = (spinA + 0.6 + Math.min(8, Math.hypot(tx - rx, ty - ry) * 0.15)) % 360;
+      ret.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
+      ring.style.transform = `translate3d(${(rx - tx).toFixed(1)}px, ${(ry - ty).toFixed(1)}px, 0) rotate(${spinA.toFixed(1)}deg)`;
+    } else { rx = tx; ry = ty; }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
