@@ -135,9 +135,10 @@
       for(let x = 0; x < gw; x++){
         const i = y * gw + x, k = i * 4;
         const nx = (x + 0.5) / gw * 2 - 1;
-        // a soft oval vignette: full strength in the middle, nothing at the edges
-        const e = Math.sqrt(nx * nx * 0.92 + ny * ny);
-        const vig = smooth((1.04 - e) / 0.72);
+        // a soft oval vignette: full strength in the middle, fading to exactly
+        // nothing a little inside every edge, so the canvas never shows a line
+        const e = Math.sqrt(nx * nx * 0.96 + ny * ny);
+        const vig = smooth((0.96 - e) / 0.7);
         const lum = (0.2126 * data[k] + 0.7152 * data[k + 1] + 0.0722 * data[k + 2]) / 255;
         r[i] = data[k]; gg[i] = data[k + 1]; b[i] = data[k + 2];
         // true black stays see-through so the glow shows through it
