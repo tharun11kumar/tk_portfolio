@@ -128,6 +128,8 @@ const CONTENT = {
       role: "Film",
       description: "A black-and-white promo film for VITC IntraMUN.",
       image: "assets/films/intramun-batman-cover.jpg",
+      // a short silent clip that loops on the big screen; the full film still plays from Drive
+      preview: "assets/films/intramun-batman-preview.mp4",
       video: "https://drive.google.com/file/d/1DFTK1oxDOhGwuga5EZlPulD6EVMbicXm/view",
       link: null,
     },

@@ -415,9 +415,11 @@ function showOnScreen(item){
   if(!item){ media.innerHTML = ""; info.innerHTML = ""; screen.hidden = true; return; }
   screen.hidden = false;
 
-  const src = resolveVideo(item.video);
+  // a short silent "preview" clip wins; otherwise a video kept with the site plays itself
+  const own = resolveVideo(item.video);
+  const src = item.preview || (own && isVideoFile(own) ? own : null);
   let layer;
-  if(src && isVideoFile(src) && !reducedMotion()){
+  if(src && !reducedMotion()){
     layer = document.createElement("video");
     layer.muted = true;
     layer.loop = true;
@@ -425,9 +427,9 @@ function showOnScreen(item){
     layer.preload = "auto";
     if(item.image) layer.poster = item.image;
     layer.setAttribute("aria-hidden", "true");
-    // open the preview on the livelier last stretch rather than the first frame
+    // a full video opens on its livelier last stretch rather than the first frame
     layer.addEventListener("loadedmetadata", () => {
-      if(layer.duration > 8) layer.currentTime = layer.duration * 0.75;
+      if(!item.preview && layer.duration > 8) layer.currentTime = layer.duration * 0.75;
       layer.play().catch(() => {});
     }, { once: true });
     layer.src = src;
