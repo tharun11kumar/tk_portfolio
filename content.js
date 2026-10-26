@@ -447,7 +447,7 @@ const CONTENT = {
     // who took it; shown small under the portrait ("" to leave it off)
     portraitCredit: "",
     paragraphs: [
-      "I'm Tharun — an editor, photographer and filmmaker based out of Chennai, and an Electrical Engineer at VIT Chennai.",
+      "I'm Tharun — an editor, photographer and filmmaker based out of Chennai, and an Electrical Engineering student at VIT Chennai.",
       "The engineering side isn't separate from the creative side — I like building the tools I edit with as much as I like editing. A beat-detection cutter for Premiere Pro started as a way to save myself time; it's now part of how I work.",
       "Outside of freelance work, I run the technical side of my college's Film Society — organizing challenges that push people to write, shoot and cut a film in a weekend.",
     ],
