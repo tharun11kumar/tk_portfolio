@@ -451,7 +451,7 @@ const CONTENT = {
       "The engineering side isn't separate from the creative side — I like building the tools I edit with as much as I like editing. A beat-detection cutter for Premiere Pro started as a way to save myself time; it's now part of how I work.",
       "Outside of freelance work, I run the technical side of my college's Film Society — organizing challenges that push people to write, shoot and cut a film in a weekend.",
     ],
-    kit: ["Premiere Pro", "DaVinci Resolve", "After Effects", "Lightroom", "Photoshop", "CEP / ExtendScript"],
+    kit: ["Premiere Pro", "DaVinci Resolve", "After Effects", "Lightroom", "Canva"],
   },
 
   contact: {
