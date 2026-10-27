@@ -3,7 +3,8 @@
    A matte black console sitting on the very bottom of the page,
    lit from behind by a green glow:
    - Left: a dot-matrix status strip with its LED, a round TK badge,
-     and three rows of keycaps that are the links: the sections of
+     and three rows of keycaps (rendered in Blender, see
+     assets/deck/render_keys.py) that are the links: the sections of
      the page, your Instagram and LinkedIn, "@" (copies your email)
      and HIRE ME (opens a new email to you). A key under the cursor
      snaps down at once, its skirt slipping under the row in front.
@@ -35,11 +36,11 @@
     const ON = title((status && status.value) || "Available for freelance");
     const CHECK = "Checking Freelance Availability";
 
-    // rows of [label, what it does, link (or "copy"), colour, width in key units]
+    // rows of [rendered cap (assets/deck/key-NAME.webp), what it does, link (or "copy"), width in key units]
     const rows = [
-      [["Home", "Back to the top", "#top", "black", 1.75], ["Work", "Films and edits", "#work", "frost", 1], ["IG", "Instagram", ig && ig.url, "sunset", 1]],
-      [["@", "Copy " + email, "copy", "sand", 1], ["Hire me", "Write to me", "mailto:" + email, "black", 1.75], ["IN", "LinkedIn", li && li.url, "black", 1]],
-      [["Photos", "The albums", "#photography", "black", 1.75], ["About", "Who's behind the lens", "#about", "candy", 1], ["Roles", "Where I've led", "#roles", "cobalt", 1]],
+      [["home", "Back to the top", "#top", 1.75], ["work", "Films and edits", "#work", 1], ["ig", "Instagram", ig && ig.url, 1]],
+      [["at", "Copy " + email, "copy", 1], ["hire", "Write to me", "mailto:" + email, 1.75], ["in", "LinkedIn", li && li.url, 1]],
+      [["photos", "The albums", "#photography", 1.75], ["about", "Who's behind the lens", "#about", 1], ["roles", "Where I've led", "#roles", 1]],
     ];
 
     deck.innerHTML = `
@@ -70,10 +71,10 @@
       r.className = "deck-row";
       // each row sits over the one behind it, so a pressed key slips under
       r.style.zIndex = ri + 1;
-      row.filter(k => k[2]).forEach(([label, hint, href, colour, units]) => {
+      row.filter(k => k[2]).forEach(([name, hint, href, units]) => {
         const external = /^https?:/.test(href);
         const el = document.createElement(href === "copy" ? "button" : "a");
-        el.className = `key key-${colour}`;
+        el.className = "key";
         el.style.setProperty("--w", units);
         if(href === "copy") el.type = "button";
         else {
@@ -81,7 +82,7 @@
           if(external){ el.target = "_blank"; el.rel = "noopener"; }
         }
         el.setAttribute("aria-label", hint);
-        el.innerHTML = `<span class="key-cap"><span class="key-label">${label}</span></span>`;
+        el.innerHTML = `<img class="key-img" src="assets/deck/key-${name}.webp" alt="" draggable="false" decoding="async">`;
         if(href === "copy"){
           el.addEventListener("click", async () => {
             try{ await navigator.clipboard.writeText(email); }catch(e){}
