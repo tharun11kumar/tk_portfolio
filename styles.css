@@ -1064,6 +1064,87 @@ details.credit summary:hover{ background: rgba(11, 11, 13, 0.1); }
 .s1{ left: 10px; top: 10px; } .s2{ right: 10px; top: 10px; } .s3{ left: 10px; bottom: 10px; } .s4{ right: 10px; bottom: 10px; }
 .fine{ margin: 0 0 18px; font-size: var(--step-small); color: var(--muted); }
 
+/* On wider screens the deck's body is rendered (assets/deck/render_deck.py):
+   a left end with the key well, status slot and badge, a grille strip that
+   stretches to fill, and a right end with the scope plate. The status text,
+   badge letters, keys and scope screen sit on top at the spots the render
+   reports (in key units from each piece's top-left corner). */
+@media (min-width: 761px){
+  .deck{
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    height: calc(var(--u) * 3.874);
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  .deck-plate{ background: none; box-shadow: none; border-radius: 0; }
+  .deck-plate.deck-left{
+    position: relative;
+    flex: none;
+    width: calc(var(--u) * 4.48);
+    height: 100%;
+    padding: 0;
+    display: block;
+    background: url("assets/deck/deck-left.webp") 0 0 / 100% 100% no-repeat;
+  }
+  .deck-grille{
+    flex: 1;
+    height: 100%;
+    align-self: stretch;
+    border-radius: 0;
+    box-shadow: none;
+    background: url("assets/deck/deck-mid.webp") 0 0 / 100% 100% no-repeat;
+  }
+  .deck-plate.deck-scope{
+    position: relative;
+    flex: none;
+    width: calc(var(--u) * 4.63);
+    height: 100%;
+    aspect-ratio: auto;
+    background: url("assets/deck/deck-right.webp") 0 0 / 100% 100% no-repeat;
+  }
+  .deck-top{ display: contents; }
+  /* the status text sits in the rendered slot, which already has its glass */
+  .deck-lcd{
+    position: absolute;
+    left: calc(var(--u) * 0.48); top: calc(var(--u) * 0.596);
+    width: calc(var(--u) * 3.2); height: calc(var(--u) * 0.346);
+    padding: 0 calc(var(--u) * 0.17);
+    background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px);
+    box-shadow: none;
+    font-size: calc(var(--u) * 0.16);
+  }
+  /* the badge letters on the rendered cap */
+  .deck-badge{
+    position: absolute;
+    left: calc(var(--u) * 3.83); top: calc(var(--u) * 0.529);
+    width: calc(var(--u) * 0.42); height: calc(var(--u) * 0.42);
+    background: none;
+    box-shadow: none;
+    color: rgba(225, 222, 214, 0.75);
+    font-size: calc(var(--u) * 0.13);
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.8);
+  }
+  /* the keys stand in the rendered well */
+  .deck-keys{
+    position: absolute;
+    left: calc(var(--u) * 0.5); top: calc(var(--u) * 1.21);
+  }
+  /* the screen fills the rendered glass exactly */
+  .deck-crt{
+    top: calc(var(--u) * 0.854); left: calc(var(--u) * 1.32);
+    bottom: auto;
+    width: calc(var(--u) * 2.32); height: calc(var(--u) * 2.32);
+    aspect-ratio: auto;
+    translate: none;
+    box-shadow: inset 0 0 calc(var(--u) * 0.2) rgba(0, 0, 0, 0.9);
+  }
+  .deck-screw{ display: none; }
+}
+
 /* ============ MODAL ============ */
 .modal{
   position: fixed;
