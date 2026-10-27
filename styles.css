@@ -969,74 +969,40 @@ details.credit summary:hover{ background: rgba(11, 11, 13, 0.1); }
   letter-spacing: 0.02em;
 }
 
-/* the keycaps: a top face on a visible skirt, so they read as solid caps */
+/* the keycaps: rendered in Blender (assets/deck/render_keys.py), one image per
+   key. Each link is the size of the cap itself; its picture hangs outside it,
+   with the shadow, so the clickable area is exactly the visible key. */
 .deck-keys{
   display: grid;
   gap: 0;
-  /* a key in the last row sinks into the deck rather than past it */
-  clip-path: inset(-40% -6% 0 -6%);
+  /* a key in the last row sinks into the deck rather than past it, and the
+     key pictures' shadows never add to the page's height */
+  overflow: clip;
 }
-.deck-row{ position: relative; display: flex; gap: 2px; }
-/* each row overlaps the one behind it, so a pressed key's skirt hides under it */
-.deck-row + .deck-row{ margin-top: calc(var(--u) * -0.2); }
+.deck-row{ position: relative; display: flex; gap: calc(var(--u) * 0.09); }
+/* rows are one key deep, seen from above at 30 degrees, so each overlaps the
+   one behind it a little; a pressed key slips under the row in front */
+.deck-row + .deck-row{ margin-top: calc(var(--u) * -0.088); }
 .key{
   position: relative;
   flex: none;
-  width: calc(var(--w) * var(--u) + (var(--w) - 1) * 2px);
-  height: calc(var(--u) * 0.96);
-  border-radius: calc(var(--u) * 0.17);
-  text-decoration: none;
-  background: linear-gradient(180deg, var(--sk1), var(--sk2));
-  transform: perspective(calc(var(--u) * 2.4)) rotateX(19deg);
-  transform-origin: 50% 100%;
-  box-shadow:
-    0 calc(var(--u) * 0.1) calc(var(--u) * 0.16) -4px rgba(0, 0, 0, 0.85),
-    0 0 0 1px rgba(0, 0, 0, 0.65),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    inset 4px 0 5px -3px rgba(255, 255, 255, 0.1),
-    inset -4px 0 5px -3px rgba(0, 0, 0, 0.45),
-    inset 0 -3px 4px rgba(0, 0, 0, 0.35);
+  width: calc((var(--w) - 0.09) * var(--u));
+  height: calc(var(--u) * 0.954);
   -webkit-tap-highlight-color: transparent;
 }
-.key-cap{
+.key-img{
   position: absolute;
-  left: 8%; right: 8%; top: 2%; bottom: 33%;
-  display: grid; place-items: center;
-  border-radius: calc(var(--u) * 0.13);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 34%),
-    radial-gradient(130% 110% at 50% 0%, var(--f1), var(--f2) 78%);
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.35),
-    inset 0 -5px 9px rgba(0, 0, 0, 0.12),
-    0 3px 5px -1px rgba(0, 0, 0, 0.28);
+  left: calc(var(--u) * -0.125);
+  top: calc(var(--u) * -0.25);
+  width: calc((var(--w) + 0.158) * var(--u));
+  height: auto;
+  max-width: none;
+  pointer-events: none;
+  user-select: none;
 }
-.key-label{
-  color: var(--ink, #f4f1ea);
-  font: 500 calc(var(--u) * 0.215)/1 "Lexend", var(--text);
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.key:focus-visible{ outline: 2px solid #57ff86; outline-offset: 3px; }
-/* under the cursor a key snaps straight down, no easing, like a real switch;
-   its skirt slips under the row in front */
-.key:hover, .key:focus-visible, .key:active{
-  transform: perspective(calc(var(--u) * 2.4)) rotateX(19deg) translateY(calc(var(--u) * 0.11));
-}
-
-.key-black{  --f1: #424248; --f2: #1f1f23; --sk1: #2e2e33; --sk2: #0f0f11; }
-.key-frost{  --f1: #f4f9ff; --f2: #b4d3f3; --sk1: #a3c6ee; --sk2: #5683c4; --ink: #3c6fb8; }
-.key-sand{   --f1: #f3dcae; --f2: #dcb57d; --sk1: #cfa66c; --sk2: #8a6436; --ink: #3d2b14; }
-.key-candy{  --f1: #ffc8ee; --f2: #f08fda; --sk1: #e47ccc; --sk2: #9b3a8f; --ink: #8e2a80; }
-.key-cobalt{ --f1: #5d76ff; --f2: #2a3ff2; --sk1: #263be6; --sk2: #131c96; }
-.key-sunset{ --sk1: #e0457a; --sk2: #6a2a8a; }
-.key-sunset .key-cap{
-  background:
-    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.3), transparent 60%),
-    linear-gradient(165deg, #ffb24a 0%, #ff5a5f 45%, #e1308a 70%, #8a4dff 100%);
-}
-.key-frost .key-label, .key-cobalt .key-label{ text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25); }
+.key:focus-visible{ outline: 2px solid #57ff86; outline-offset: 3px; border-radius: calc(var(--u) * 0.18); }
+/* under the cursor a key snaps straight down, no easing, like a real switch */
+.key:hover, .key:focus-visible, .key:active{ transform: translateY(calc(var(--u) * 0.12)); }
 
 /* the speaker grille: dark slots with a lit lip on each slat */
 .deck-grille{
@@ -1529,7 +1495,7 @@ html.has-cam-cursor *{ cursor: none !important; }
 @media (prefers-reduced-motion: reduce){
   .tcb-rec b{ animation: none; }
   .deck{ opacity: 1; translate: none; transition: none; }
-  .key, .key-cap{ transition: none; }
+  .key{ transition: none; }
 }
 
 /* ============ INTRO: the camera turning on (intro.js) ============ */
