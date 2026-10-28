@@ -969,7 +969,7 @@ details.credit summary:hover{ background: rgba(11, 11, 13, 0.1); }
   letter-spacing: 0.02em;
 }
 
-/* the keycaps: rendered in Blender (assets/deck/render_keys.py), one image per
+/* the keycaps: rendered images (assets/deck/key-*.webp), one image per
    key. Each link is the size of the cap itself; its picture hangs outside it,
    with the shadow, so the clickable area is exactly the visible key. */
 .deck-keys{
@@ -1064,7 +1064,7 @@ details.credit summary:hover{ background: rgba(11, 11, 13, 0.1); }
 .s1{ left: 10px; top: 10px; } .s2{ right: 10px; top: 10px; } .s3{ left: 10px; bottom: 10px; } .s4{ right: 10px; bottom: 10px; }
 .fine{ margin: 0 0 18px; font-size: var(--step-small); color: var(--muted); }
 
-/* On wider screens the deck's body is rendered (assets/deck/render_deck.py):
+/* On wider screens the deck's body is a rendered image (assets/deck/deck-*.webp):
    a left end with the key well, status slot and badge, a grille strip that
    stretches to fill, and a right end with the scope plate. The status text,
    badge letters, keys and scope screen sit on top at the spots the render

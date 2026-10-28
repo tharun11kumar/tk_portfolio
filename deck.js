@@ -3,8 +3,8 @@
    A matte black console sitting on the very bottom of the page,
    lit from behind by a green glow:
    - Left: a dot-matrix status strip with its LED, a round TK badge,
-     and three rows of keycaps (rendered in Blender, see
-     assets/deck/render_keys.py) that are the links: the sections of
+     and three rows of keycaps (rendered images in assets/deck/)
+     that are the links: the sections of
      the page, your Instagram and LinkedIn, "@" (copies your email)
      and HIRE ME (opens a new email to you). A key under the cursor
      snaps down at once, its skirt slipping under the row in front.
